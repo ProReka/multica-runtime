@@ -1,0 +1,95 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Versions, shell, Dockerfiles, tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version consistency
+        run: scripts/check-versions.sh
+
+      - name: Shell syntax
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            bash -n "$file"
+          done < <(find . -path ./.git -prune -o -name '*.sh' -print)
+
+      - name: shellcheck
+        run: |
+          set -euo pipefail
+          shellcheck --version
+          find . -path ./.git -prune -o -name '*.sh' -print0 \
+            | xargs -0 shellcheck --severity=warning
+
+      - name: hadolint
+        run: |
+          set -euo pipefail
+          url=https://github.com/hadolint/hadolint/releases/download/v2.15.1
+          curl -fsSL "$url/hadolint-linux-x86_64" -o /usr/local/bin/hadolint
+          chmod +x /usr/local/bin/hadolint
+          hadolint --version
+          find images autoscaler -name Dockerfile -print0 \
+            | xargs -0 hadolint
+
+      - name: Autoscaler unit tests
+        run: |
+          cd autoscaler
+          python3 -m unittest -v
+
+      - name: JSON manifests
+        run: |
+          set -euo pipefail
+          for file in deploy/ecs/*.json; do
+            jq empty "$file"
+            echo "ok $file"
+          done
+
+      - name: YAML manifests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import pathlib
+          import yaml
+
+          files = [
+              *pathlib.Path("deploy").rglob("*.yml"),
+              *pathlib.Path("deploy").rglob("*.yaml"),
+              *pathlib.Path(".github").rglob("*.yml"),
+              pathlib.Path("compose.yaml"),
+              pathlib.Path("mkdocs.yml"),
+          ]
+          for path in files:
+              with path.open() as fh:
+                  list(yaml.safe_load_all(fh))
+              print(f"ok {path}")
+          PY
+
+      - name: Compose config
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          docker compose config >/dev/null
+          docker compose -f compose.yaml \
+            -f deploy/compose/compose.production.yaml config >/dev/null
+          rm -f .env
+
+      - name: Python syntax
+        run: |
+          python3 -m py_compile autoscaler/autoscaler.py autoscaler/test_autoscaler.py

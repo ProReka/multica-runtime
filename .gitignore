@@ -1,0 +1,24 @@
+# Local configuration — never commit real credentials.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Docs build
+site/
+
+# Editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local images / build output
+dist/
+*.tar
+*.tgz

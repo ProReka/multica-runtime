@@ -1,0 +1,72 @@
+site_name: Multica Runtime
+site_description: Docker images that turn Claude Code and OpenCode into Multica agents.
+site_url: https://proreka.github.io/multica-runtime/
+repo_url: https://github.com/ProReka/multica-runtime
+repo_name: ProReka/multica-runtime
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Configuration: configuration.md
+  - Variants: variants.md
+  - How it works:
+      - Architecture: architecture.md
+      - Agent CLIs: agents.md
+      - Persistence: persistence.md
+  - Autoscaling: autoscaling.md
+  - Deployment:
+      - Docker Compose: deployment/compose.md
+      - Docker Swarm: deployment/swarm.md
+      - Amazon ECS: deployment/ecs.md
+      - Kubernetes: deployment/kubernetes.md
+      - Dokploy: deployment/dokploy.md
+  - Operations:
+      - Troubleshooting: operations/troubleshooting.md
+      - Security: operations/security.md
+      - Upgrading: operations/upgrading.md
+  - Development: development.md
+  - Roadmap: roadmap.md
+  - FAQ: faq.md
+  - Decisions:
+      - "ADR 0001: one image, many tags": adr/0001-one-image-many-tags.md
+      - "ADR 0002: the AI_* config surface": adr/0002-ai-config-surface.md
+      - "ADR 0003: non-root by default": adr/0003-non-root.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search

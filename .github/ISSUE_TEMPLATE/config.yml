@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Configuration help
+    url: https://github.com/ProReka/multica-runtime/discussions
+    about: Ask about routers, models, or deployment without filing a bug.
+  - name: Security report
+    url: https://github.com/ProReka/multica-runtime/security/advisories/new
+    about: Report a vulnerability privately. Never open a public issue.
+  - name: Documentation
+    url: https://proreka.github.io/multica-runtime/
+    about: Quickstart, configuration, variants, troubleshooting.

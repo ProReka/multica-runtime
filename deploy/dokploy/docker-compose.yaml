@@ -1,0 +1,37 @@
+# Dokploy compose service.
+#
+# Create a Compose service in Dokploy, paste this file, then fill the
+# environment variables in the Dokploy UI (Environment tab). Do not publish a
+# port: the runtime only makes outbound connections.
+#
+# Pick the variant by changing the image tag.
+services:
+  runtime:
+    image: ${MULTICA_IMAGE:-ghcr.io/proreka/multica-runtime:base}
+    restart: unless-stopped
+    stop_grace_period: 90s
+    environment:
+      MULTICA_TOKEN: ${MULTICA_TOKEN}
+      MULTICA_SERVER_URL: ${MULTICA_SERVER_URL:-}
+      MULTICA_WORKSPACE: ${MULTICA_WORKSPACE:-}
+      MULTICA_DAEMON_WORKSPACE_ALLOWLIST: ${MULTICA_DAEMON_WORKSPACE_ALLOWLIST:-}
+      MULTICA_DAEMON_ID: ${MULTICA_DAEMON_ID:-multica-runtime}
+      MULTICA_AGENT_RUNTIME_NAME: ${MULTICA_AGENT_RUNTIME_NAME:-Multica Runtime}
+      MULTICA_DAEMON_MAX_CONCURRENT_TASKS: ${MULTICA_DAEMON_MAX_CONCURRENT_TASKS:-3}
+      AI_BASE_URL: ${AI_BASE_URL}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_PROTOCOL: ${AI_PROTOCOL:-auto}
+      AI_PROVIDER_ID: ${AI_PROVIDER_ID:-multica}
+      MULTICA_START_DATABASES: ${MULTICA_START_DATABASES:-1}
+    volumes:
+      - workspaces:/workspaces
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'multica daemon' >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  workspaces:

@@ -1,0 +1,14 @@
+# Contexts are per-image directories (images/<variant>). This file covers the
+# autoscaler build context and anyone building from the repo root.
+.git
+.github
+docs
+deploy
+__pycache__
+*.pyc
+.env
+.env.*
+!.env.example
+site
+*.md
+!README.md

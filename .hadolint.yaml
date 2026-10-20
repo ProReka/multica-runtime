@@ -1,0 +1,10 @@
+# hadolint configuration
+#
+# We pin what is ours to pin: downloaded binaries and language toolchains come
+# from versions.env. Debian packages come from the `trixie` snapshot that the
+# base image fixes, so pinning a package version here only guarantees a build
+# break when a point release is superseded.
+failure-threshold: warning
+ignored:
+  - DL3008  # apt-get package versions (pinned by the Debian release)
+  - DL3003  # cd inside a throwaway RUN is clearer than a WORKDIR that leaks

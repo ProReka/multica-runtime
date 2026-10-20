@@ -1,0 +1,62 @@
+# Docker Swarm stack — one runtime, one role.
+#
+#   set -a; . ./.env; set +a
+#   docker stack deploy -c deploy/swarm/stack.yml multica
+#
+# `docker stack deploy` does not read env_file, so every value is interpolated
+# from the shell. Export .env first (the command above does).
+#
+# To run several roles (node, php, design), deploy one stack per role with a
+# different STACK name, MULTICA_IMAGE and MULTICA_DAEMON_ID.
+version: "3.9"
+
+services:
+  runtime:
+    image: ${MULTICA_IMAGE:-ghcr.io/proreka/multica-runtime:base}
+    environment:
+      MULTICA_TOKEN: ${MULTICA_TOKEN:?set MULTICA_TOKEN}
+      MULTICA_SERVER_URL: ${MULTICA_SERVER_URL:-}
+      MULTICA_WORKSPACE: ${MULTICA_WORKSPACE:-}
+      MULTICA_DAEMON_WORKSPACE_ALLOWLIST: ${MULTICA_DAEMON_WORKSPACE_ALLOWLIST:-}
+      MULTICA_DAEMON_ID: ${MULTICA_DAEMON_ID:-multica-runtime}
+      MULTICA_AGENT_RUNTIME_NAME: ${MULTICA_AGENT_RUNTIME_NAME:-Multica Runtime}
+      MULTICA_DAEMON_MAX_CONCURRENT_TASKS: ${MULTICA_DAEMON_MAX_CONCURRENT_TASKS:-3}
+      AI_BASE_URL: ${AI_BASE_URL:?set AI_BASE_URL}
+      AI_API_KEY: ${AI_API_KEY:?set AI_API_KEY}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_PROTOCOL: ${AI_PROTOCOL:-auto}
+      AI_PROVIDER_ID: ${AI_PROVIDER_ID:-multica}
+      AI_MODEL_LARGE: ${AI_MODEL_LARGE:-}
+      AI_MODEL_MEDIUM: ${AI_MODEL_MEDIUM:-}
+      AI_MODEL_SMALL: ${AI_MODEL_SMALL:-}
+      AI_SUBAGENT_MODEL: ${AI_SUBAGENT_MODEL:-}
+      GH_TOKEN: ${GH_TOKEN:-}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-}
+      # php image only; ignored elsewhere.
+      MULTICA_START_DATABASES: ${MULTICA_START_DATABASES:-}
+    volumes:
+      - workspaces:/workspaces
+    deploy:
+      # Exactly one container per daemon id. Two would collide on task claims.
+      replicas: 1
+      # stop-first also guarantees the old container has deregistered before the
+      # new one registers with the same MULTICA_DAEMON_ID.
+      update_config:
+        order: stop-first
+        delay: 10s
+        failure_action: rollback
+      rollback_config:
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 0
+      placement:
+        constraints:
+          - node.labels.multica.runtime == true
+    stop_grace_period: 90s
+
+volumes:
+  workspaces:
+    name: ${MULTICA_WORKSPACES_VOLUME:-multica-workspaces}

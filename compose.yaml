@@ -1,0 +1,56 @@
+# =============================================================================
+# Multica Runtime — single-host quickstart
+# =============================================================================
+#   cp .env.example .env      # fill in the four required values
+#   docker compose up -d
+#   docker compose logs -f runtime
+#
+# Pick a variant with MULTICA_IMAGE in .env, e.g.
+#   MULTICA_IMAGE=ghcr.io/proreka/multica-runtime:php
+#
+# The runtime keeps sessions on the `workspaces` volume, so recreating the
+# container does not lose Claude Code/OpenCode history.
+# =============================================================================
+
+name: multica-runtime
+
+services:
+  runtime:
+    image: ${MULTICA_IMAGE:-ghcr.io/proreka/multica-runtime:base}
+    container_name: multica-runtime
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - workspaces:/workspaces
+    # Let the daemon deregister its runtimes and finish the current task.
+    stop_grace_period: 90s
+    # The image runs as uid 1000. A bind mount must be chowned to 1000:1000;
+    # the named volume below inherits the right ownership automatically.
+    # healthcheck is inherited from the image.
+
+  # Optional: scale runtime roles between 0 and 1 based on pending tasks.
+  # Requires AUTOSCALER_* settings in .env. See docs/autoscaling.md.
+  autoscaler:
+    image: ${AUTOSCALER_IMAGE:-ghcr.io/proreka/multica-autoscaler:latest}
+    container_name: multica-autoscaler
+    profiles: ["autoscaler"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Swarm adapter (the default for a compose host). Use ecs on ECS.
+      AUTOSCALER_PLATFORM: ${AUTOSCALER_PLATFORM:-swarm}
+    volumes:
+      # The Docker socket is root-equivalent. Only mount it on a host where the
+      # autoscaler is trusted, and prefer the ECS adapter in production.
+      - /var/run/docker.sock:/var/run/docker.sock
+    # The image runs as uid 1000; the host socket is root:docker. Add the
+    # socket's GID (stat -c '%g' /var/run/docker.sock) so the unprivileged
+    # process can talk to the daemon without becoming root.
+    group_add:
+      - "${DOCKER_GID:-999}"
+
+volumes:
+  workspaces:
+    name: multica-workspaces

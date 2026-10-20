@@ -1,0 +1,32 @@
+# Production overlay for a single Docker host.
+#
+#   docker compose -f compose.yaml -f deploy/compose/compose.production.yaml up -d
+#
+# Adds log rotation and a memory ceiling. The runtime is a coding agent: it runs
+# builds, so the limit is deliberately generous. Raise it for Flutter/Android.
+services:
+  runtime:
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 8g
+    security_opt:
+      - no-new-privileges:true
+
+  autoscaler:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    security_opt:
+      - no-new-privileges:true

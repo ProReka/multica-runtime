@@ -1,0 +1,59 @@
+name: Feature request
+description: A new variant, tool, integration, or behaviour.
+title: "feat: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good feature requests explain the problem, not only the solution.
+        Roadmap items (Codex CLI, Kubernetes autoscaling, signed images) are
+        already tracked in `docs/roadmap.md`.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: A task that needs ... cannot run because ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Could a derivative image, a task command, or an MCP server solve it without changing the base?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - New variant
+        - Existing variant
+        - Entrypoint / configuration
+        - Autoscaler
+        - Documentation
+        - CI / release
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and the roadmap.
+          required: true
+        - label: I did not include any secret in this request.
+          required: true

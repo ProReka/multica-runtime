@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadAndScaleRuntimeServices",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeServices",
+        "ecs:UpdateService"
+      ],
+      "Resource": "arn:aws:ecs:__REGION__:__ACCOUNT_ID__:service/__ECS_CLUSTER__/*"
+    }
+  ]
+}

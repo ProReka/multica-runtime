@@ -1,0 +1,7 @@
+# syntax=docker/dockerfile:1.7
+# Build context for the autoscaler only; tests and caches are not copied.
+**/__pycache__
+**/*.pyc
+test_*.py
+.env
+.env.*

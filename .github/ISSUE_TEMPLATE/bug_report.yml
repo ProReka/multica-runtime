@@ -1,0 +1,87 @@
+name: Bug report
+description: Something in an image, the entrypoint, or the autoscaler does not work.
+title: "bug: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Do not paste real tokens or API keys.** The
+        startup banner is safe to share; it never prints a secret.
+
+        Run the dry run first — it catches most configuration mistakes:
+
+        ```bash
+        docker compose run --rm -e MULTICA_DRY_RUN=1 runtime
+        ```
+
+  - type: input
+    id: image
+    attributes:
+      label: Image and tag
+      description: Exactly as you ran it.
+      placeholder: ghcr.io/proreka/multica-runtime:php
+    validations:
+      required: true
+
+  - type: dropdown
+    id: orchestrator
+    attributes:
+      label: Where it runs
+      options:
+        - Docker Compose
+        - Docker Swarm
+        - Amazon ECS (Fargate)
+        - Kubernetes
+        - Dokploy
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: banner
+    attributes:
+      label: Startup banner
+      description: The first lines of `docker compose logs runtime`. Redact any URL or token you do not want public.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. docker compose up -d
+        2. Assign a task that ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Redact tokens and keys.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I ran the dry run and included its output above.
+          required: false
+        - label: I removed all tokens, API keys, and customer data from this report.
+          required: true
+        - label: I searched existing issues.
+          required: true

@@ -1,0 +1,37 @@
+# Swarm autoscaler — deploy on a manager node.
+#
+#   set -a; . ./.env; set +a
+#   docker stack deploy -c deploy/swarm/autoscaler.yml multica-autoscaler
+#
+# The autoscaler needs the Docker socket to run `docker service scale`. That is
+# root-equivalent access: deploy it only on a node you trust, or use the ECS
+# adapter instead (no socket, IAM-controlled).
+version: "3.9"
+
+services:
+  autoscaler:
+    image: ${AUTOSCALER_IMAGE:-ghcr.io/proreka/multica-autoscaler:latest}
+    environment:
+      AUTOSCALER_PLATFORM: swarm
+      AUTOSCALER_RUNTIMES: ${AUTOSCALER_RUNTIMES:?set AUTOSCALER_RUNTIMES}
+      AUTOSCALER_INTERVAL: ${AUTOSCALER_INTERVAL:-60}
+      AUTOSCALER_SCALEDOWN_COOLDOWN: ${AUTOSCALER_SCALEDOWN_COOLDOWN:-300}
+      AUTOSCALER_SCALEDOWN_GRACE: ${AUTOSCALER_SCALEDOWN_GRACE:-120}
+      AUTOSCALER_DRY_RUN: ${AUTOSCALER_DRY_RUN:-0}
+      MULTICA_TOKEN: ${MULTICA_TOKEN:?set MULTICA_TOKEN}
+      MULTICA_SERVER_URL: ${MULTICA_SERVER_URL:-}
+      MULTICA_WORKSPACE: ${MULTICA_WORKSPACE:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # The autoscaler runs as uid 1000. The socket is root:docker on the host;
+    # add that GID (stat -c '%g' /var/run/docker.sock) so it can connect.
+    group_add:
+      - "${DOCKER_GID:-999}"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s

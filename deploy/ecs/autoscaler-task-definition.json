@@ -1,0 +1,44 @@
+{
+  "family": "multica-autoscaler",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "executionRoleArn": "arn:aws:iam::__ACCOUNT_ID__:role/multicaTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::__ACCOUNT_ID__:role/multicaAutoscalerTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "autoscaler",
+      "image": "__AUTOSCALER_IMAGE__",
+      "essential": true,
+      "user": "1000:1000",
+      "environment": [
+        { "name": "AUTOSCALER_PLATFORM", "value": "ecs" },
+        { "name": "AUTOSCALER_ECS_CLUSTER", "value": "__ECS_CLUSTER__" },
+        { "name": "AUTOSCALER_RUNTIMES", "value": "__AUTOSCALER_RUNTIMES__" },
+        { "name": "AUTOSCALER_INTERVAL", "value": "60" },
+        { "name": "AUTOSCALER_SCALEDOWN_COOLDOWN", "value": "300" },
+        { "name": "AUTOSCALER_SCALEDOWN_GRACE", "value": "120" },
+        { "name": "AWS_REGION", "value": "__REGION__" }
+      ],
+      "secrets": [
+        {
+          "name": "MULTICA_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:__REGION__:__ACCOUNT_ID__:secret:multica/runtime:MULTICA_TOKEN::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/multica-runtime",
+          "awslogs-region": "__REGION__",
+          "awslogs-stream-prefix": "autoscaler"
+        }
+      }
+    }
+  ]
+}

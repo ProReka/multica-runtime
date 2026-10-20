@@ -70,11 +70,15 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # --- Laravel installer (as runner, in the runner's composer home) -----------
-# Switch USER instead of a setpriv privilege drop: the image never needs that
-# helper at runtime, and Fargate's seccomp profile is irrelevant here.
-USER runner
+# The base image may leave ~/.config root-owned; create the composer home as
+# root and hand it over before dropping privileges for the install.
+USER root
 RUN set -eux; \
     mkdir -p "$COMPOSER_HOME"; \
+    chown -R runner:runner /home/runner/.config
+
+USER runner
+RUN set -eux; \
     composer global require laravel/installer --no-interaction --no-progress; \
     laravel --version 2>/dev/null | head -n1 || true
 

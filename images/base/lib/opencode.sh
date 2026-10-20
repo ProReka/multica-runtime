@@ -59,7 +59,7 @@ PY
 mr_configure_opencode() {
     local root="${MULTICA_WORKSPACES_ROOT:-/workspaces}"
     local config_home config_dir config_file data_home
-    local origin catalogue count protocol npm base_url
+    local origin catalogue count protocol npm base_url probe_enabled
     local models_json="{}" main_model="" sub_model="" pin_sub="0"
     local main_ref="" sub_ref=""
 
@@ -88,8 +88,10 @@ mr_configure_opencode() {
     # --- Router catalogue + protocol ------------------------------------------
     origin="$(router_origin "$MR_BASE_URL")"
     if is_true "${AI_MODELS_PROBE:-1}"; then
+        probe_enabled=1
         catalogue="$(mr_probe_models)"
     else
+        probe_enabled=0
         catalogue=""
         log "AI_MODELS_PROBE disabled — skipping ${origin}/v1/models"
     fi
@@ -127,7 +129,9 @@ mr_configure_opencode() {
         if [ -n "${MR_MODEL:-}" ]; then
             models_json="$(jq -n --arg m "$MR_MODEL" '{($m): {name: $m}}')"
         fi
-        if [ "$MR_PROTOCOL" = "auto" ]; then
+        if [ "$probe_enabled" = "0" ]; then
+            log "catalogue unknown (AI_MODELS_PROBE=0); using protocol=${protocol}"
+        elif [ "$MR_PROTOCOL" = "auto" ]; then
             log "Router catalogue probe failed at ${origin}/v1/models — using the Anthropic protocol with the configured default model"
         else
             warn "router catalogue probe failed at ${origin}/v1/models — continuing with AI_PROTOCOL=${MR_PROTOCOL}"

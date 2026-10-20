@@ -14,6 +14,8 @@ if [ ! -f "${PLUGIN}/dist/manifest.json" ]; then
 fi
 
 cd "$PLUGIN"
-exec node "${ROOT}/node_modules/vite/bin/vite.js" preview \
+# pnpm keeps dependencies in each package's node_modules, not at the monorepo
+# root, so resolve vite from the plugin package itself.
+exec node "${PLUGIN}/node_modules/vite/bin/vite.js" preview \
     --host "${PENPOT_MCP_PLUGIN_SERVER_HOST:-127.0.0.1}" \
     --port "${PENPOT_MCP_PLUGIN_PORT:-4400}"

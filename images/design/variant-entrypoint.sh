@@ -25,6 +25,7 @@ export PENPOT_BROWSER_PROFILE="$PROFILE"
 # --- 1. Virtual display ------------------------------------------------------
 DISP_NUM="${DISPLAY_NUM#:}"
 X_SOCK="/tmp/.X11-unix/X${DISP_NUM}"
+mkdir -p /tmp/.X11-unix 2>/dev/null || true
 if [ -S "$X_SOCK" ]; then
     log "Xvfb already running on ${DISPLAY_NUM}"
 else

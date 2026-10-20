@@ -26,7 +26,13 @@ mr_configure_claude() {
     # Avoid optional telemetry/update traffic on locked-down routers.
     export_default CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
 
-    # Pass-through overrides for the daemon.
-    [ -n "${MULTICA_CLAUDE_MODEL:-}" ] && export MULTICA_CLAUDE_MODEL
-    [ -n "${MULTICA_CLAUDE_ARGS:-}" ]  && export MULTICA_CLAUDE_ARGS
+    # Pass-through overrides for the daemon. (Use `if`, not `test && export`:
+    # the latter makes the function return 1 when the variable is unset, which
+    # under `set -e` aborts startup at the call site.)
+    if [ -n "${MULTICA_CLAUDE_MODEL:-}" ]; then
+        export MULTICA_CLAUDE_MODEL
+    fi
+    if [ -n "${MULTICA_CLAUDE_ARGS:-}" ]; then
+        export MULTICA_CLAUDE_ARGS
+    fi
 }

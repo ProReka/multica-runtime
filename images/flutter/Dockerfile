@@ -73,7 +73,7 @@ RUN set -eux; \
     unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools; \
     mv /tmp/cmdline-tools/cmdline-tools "${ANDROID_HOME}/cmdline-tools/latest"; \
     rm -rf /tmp/cmdline-tools.zip /tmp/cmdline-tools; \
-    yes | sdkmanager --licenses >/dev/null; \
+    yes | sdkmanager --licenses >/dev/null || true; \
     sdkmanager --install "platform-tools" ${ANDROID_PLATFORMS} ${ANDROID_BUILD_TOOLS} >/dev/null; \
     if [ -n "${ANDROID_NDK_VERSION}" ]; then \
         sdkmanager --install "ndk;${ANDROID_NDK_VERSION}" >/dev/null; \
@@ -100,8 +100,8 @@ RUN set -eux; \
     else \
         flutter precache --web --linux >/dev/null 2>&1 || true; \
     fi; \
-    chown -R runner:runner /opt/flutter; \
-    flutter --version | head -n2
+    flutter --version | head -n2; \
+    chown -R runner:runner /opt/flutter
 
 # --- Gradle defaults ---------------------------------------------------------
 RUN set -eux; \

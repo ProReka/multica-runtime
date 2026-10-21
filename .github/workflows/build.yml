@@ -189,10 +189,37 @@ jobs:
               scripts/test-image.sh "${{ matrix.variant }}"
           fi
 
+  runtime:
+    name: ${{ matrix.variant }} runtime
+    needs: [plan, variants]
+    if: needs.plan.outputs.push == 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [php, design]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ${{ matrix.variant }}
+        run: docker pull "ghcr.io/proreka/multica-runtime:${{ matrix.variant }}"
+
+      - name: Runtime smoke test
+        env:
+          IMAGE: ghcr.io/proreka/multica-runtime:${{ matrix.variant }}
+        run: scripts/test-runtime.sh "${{ matrix.variant }}"
+
   release:
     name: GitHub release
     if: github.ref_type == 'tag'
-    needs: [plan, variants]
+    needs: [plan, variants, runtime]
     runs-on: ubuntu-24.04
     permissions:
       contents: write

@@ -11,7 +11,7 @@ VARIANTS ?= base,node,python,php,go,flutter,devops,qa,design,autoscaler
 IMAGE_PREFIX ?= multica-runtime
 PYTHON ?= python3
 
-.PHONY: help lint test-versions test-python test-shell build test push docs docs-build clean
+.PHONY: help lint test-versions test-python test-shell test-runtime build test push docs docs-build clean
 
 help: ## Show this help
 	@printf 'Multica Runtime\n\n'
@@ -42,6 +42,9 @@ build: ## Build images locally (VARIANTS=base,node,...)
 
 test: ## Smoke-test locally built images (VARIANTS=base,node,...)
 	@IMAGE_PREFIX=$(IMAGE_PREFIX) scripts/test-image.sh $$(echo $(VARIANTS) | tr ',' ' ')
+
+test-runtime: ## Start variant services locally (VARIANT=php|design, needs Docker)
+	@IMAGE=$(IMAGE_PREFIX):$(VARIANT) scripts/test-runtime.sh $(VARIANT)
 
 push: ## Build and push multi-arch images (PUSH=1)
 	@PUSH=1 VARIANTS=$(VARIANTS) scripts/build.sh

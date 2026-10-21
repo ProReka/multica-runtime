@@ -112,6 +112,8 @@ mr_configure_opencode() {
         openai)    protocol="openai" ;;
         anthropic) protocol="anthropic" ;;
     esac
+    MR_EFFECTIVE_PROTOCOL="$protocol"
+    export MR_EFFECTIVE_PROTOCOL
 
     if [ "$protocol" = "openai" ]; then
         npm="@ai-sdk/openai-compatible"

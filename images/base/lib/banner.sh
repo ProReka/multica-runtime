@@ -16,6 +16,6 @@ mr_print_banner() {
     log "Versions  claude=$(probe_version claude --version) | opencode=$(probe_version opencode --version) | multica=$(probe_version multica --version) | node=$(probe_version node --version) | python=$(probe_version python3 --version)"
     log "Platform  os=${os_name:-unknown} | kernel=$(probe_version uname -r) | arch=${arch}"
     log "Runtime   name=${MULTICA_AGENT_RUNTIME_NAME:-unset} | id=${MULTICA_DAEMON_ID:-auto (${HOSTNAME:-unknown})} | max-tasks=${MULTICA_DAEMON_MAX_CONCURRENT_TASKS:-default}"
-    log "AI        protocol=${MR_PROTOCOL} | provider=${MR_PROVIDER_ID} | auth=${MR_AUTH_MODE} | model=${MR_MODEL:-default} | tiers=${MR_LARGE:-default}/${MR_MEDIUM:-default}/${MR_SMALL:-default} | subagent=${MR_SUBAGENT:-default}"
+    log "AI        protocol=${MR_EFFECTIVE_PROTOCOL:-${MR_PROTOCOL:-auto}} | provider=${MR_PROVIDER_ID} | auth=${MR_AUTH_MODE} | model=${MR_MODEL:-default} | tiers=${MR_LARGE:-default}/${MR_MEDIUM:-default}/${MR_SMALL:-default} | subagent=${MR_SUBAGENT:-default}"
     log "Paths     workspaces=${MULTICA_WORKSPACES_ROOT:-/workspaces} | claude=${CLAUDE_CONFIG_DIR:-${HOME}/.claude (ephemeral)} | opencode=${XDG_DATA_HOME:-${HOME}/.local/share (ephemeral)}"
 }

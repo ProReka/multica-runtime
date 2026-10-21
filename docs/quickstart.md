@@ -24,8 +24,10 @@ AI_API_KEY=sk-ant-...
 AI_MODEL=claude-sonnet-4-5
 ```
 
-Using a router? See [Configuration → Routers](configuration.md#routers). If your
-router is OpenAI-compatible, the image detects it automatically.
+Using a router? See [Configuration → Routers](configuration.md#routers). OpenCode
+can use an OpenAI-compatible surface; Claude Code needs an Anthropic-compatible
+one. With `AI_PROTOCOL=auto` the image probes the router and picks the right
+adapter for OpenCode.
 
 ## 3. Start it
 

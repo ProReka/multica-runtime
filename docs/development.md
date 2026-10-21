@@ -30,6 +30,7 @@ autoscaler/             Python autoscaler + unit tests
 scripts/                build.sh, test-image.sh, check-versions.sh
 deploy/                 compose, swarm, ecs, kubernetes, dokploy examples
 docs/                   this documentation
+BRANDING.md             palette, cover-art prompts, typography
 versions.env            single source of truth for every tool version
 compose.yaml            quickstart
 ```

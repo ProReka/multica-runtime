@@ -7,7 +7,16 @@ The image contains two agent CLIs, both installed and pinned at build time:
 | Claude Code | `@anthropic-ai/claude-code` | `claude` |
 | OpenCode | `opencode-ai` | `opencode` |
 
-Codex CLI is **not installed yet**. See the [roadmap](roadmap.md).
+More CLIs are planned, but none are installed yet:
+
+- **Wave 1:** Codex CLI (`codex`), Qwen Code (`qwen`), Grok Build (`grok`),
+  DeepSeek Harness (`dsh`).
+- **Wave 2:** Pi (`pi`), Oh-My-Pi (`omp`), Hermes Agent (`hermes`), OpenClaw
+  (`openclaw`).
+
+Each one needs a headless adapter, a pinned version, and a real runtime test
+before it appears in an image. See the [roadmap](roadmap.md) for the criteria and
+the honest blockers.
 
 ## One runtime per CLI
 

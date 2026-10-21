@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Roadmap for new agent CLI adapters: Codex CLI, Qwen Code, Grok Build, DeepSeek
+  Harness, Pi, Oh-My-Pi, Hermes Agent and OpenClaw.
+- Autoscaler design notes for a metrics endpoint, KEDA, a signed webhook, Nomad,
+  and the limits of Docker Compose standalone.
+- Brand guide and copy-paste cover-art prompts in `BRANDING.md`.
+
+## [0.2.0] - 2026-10-21
+
+### Added
+
 - Initial public release.
 - Base image on Debian 13 with Node.js 24, Python 3, git/gh, Chromium, build
   tools, Claude Code, OpenCode, and the Multica CLI.
@@ -23,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Task-driven autoscaler for ECS and Swarm, with cooldown, grace, and
   running-task guards, `--once`, `--dry-run`, `--check`, and `--health`.
 - CI: lint, version consistency, autoscaler tests, multi-arch builds, image smoke
-  tests, GHCR publishing with provenance and SBOM.
+  tests, runtime tests for the PHP databases and design MCP stack, GHCR
+  publishing with provenance and SBOM, and a tagged GitHub release.
 - Deployment examples for Compose, Swarm, ECS Fargate, Kubernetes, and Dokploy.
 - Documentation site (MkDocs Material) and three ADRs.
 
@@ -33,4 +44,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No secrets in image layers; OpenCode config written with mode `0600`.
 - No privileged mode, no Docker socket except the optional Swarm autoscaler.
 
-[Unreleased]: https://github.com/ProReka/multica-runtime/commits/main
+[Unreleased]: https://github.com/ProReka/multica-runtime/compare/v0.2.0...main
+[0.2.0]: https://github.com/ProReka/multica-runtime/releases/tag/v0.2.0

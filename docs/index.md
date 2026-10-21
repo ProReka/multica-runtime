@@ -85,8 +85,10 @@ autoscaler, which needs it to call `docker service scale`.
 
 ## Status
 
-Claude Code and OpenCode are supported now. **Codex CLI is coming soon**; see the
-[roadmap](roadmap.md). The image does not install it yet on purpose.
+Claude Code and OpenCode are supported now. Codex CLI, Qwen Code, Grok Build,
+DeepSeek Harness, Pi, Oh-My-Pi, Hermes Agent, OpenClaw and more are on the
+[roadmap](roadmap.md). None of them are installed yet on purpose: each one gets
+an adapter, a pinned version, and a runtime test before it ships.
 
 ## License
 

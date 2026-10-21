@@ -51,6 +51,24 @@ PUSH=1 VERSION=0.2.0 scripts/build.sh
 
 That is for maintainers with registry credentials; CI does it automatically.
 
+## Releasing
+
+Images are published from `main` on every push. A release adds immutable version
+tags, runs the runtime checks and creates a GitHub release:
+
+```bash
+git tag -a v0.3.0 -m "Multica Runtime v0.3.0"
+git push origin v0.3.0
+```
+
+This publishes `v0.3.0`, `v0.3.0-base` … `v0.3.0-design` and
+`multica-autoscaler:v0.3.0`, then creates the release.
+
+Do not tag a commit whose message contains `[skip ci]`. GitHub Actions treats
+that marker as "do not run workflows for this commit" and the tag push is
+skipped too. If that happens, dispatch the Build workflow with
+`--ref v0.3.0 -f variants=all -f push=true`; the tag is still read from the ref.
+
 ## Adding a variant
 
 1. Create `images/<name>/Dockerfile` starting with:

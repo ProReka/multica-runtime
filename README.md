@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/ProReka/multica-runtime/actions/workflows/build.yml/badge.svg)](https://github.com/ProReka/multica-runtime/actions/workflows/build.yml)
 [![Docs](https://github.com/ProReka/multica-runtime/actions/workflows/docs.yml/badge.svg)](https://proreka.github.io/multica-runtime/)
+[![Release](https://img.shields.io/github/v/release/ProReka/multica-runtime?display_name=tag)](https://github.com/ProReka/multica-runtime/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Images: GHCR](https://img.shields.io/badge/images-ghcr.io%2Fproreka%2Fmultica--runtime-2496ED?logo=docker&logoColor=white)](https://github.com/ProReka/multica-runtime/pkgs/container/multica-runtime)
 

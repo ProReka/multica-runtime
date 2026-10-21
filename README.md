@@ -6,6 +6,8 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Images: GHCR](https://img.shields.io/badge/images-ghcr.io%2Fproreka%2Fmultica--runtime-2496ED?logo=docker&logoColor=white)](https://github.com/ProReka/multica-runtime/pkgs/container/multica-runtime)
 
+![Multica Runtime — one container, any stack](docs/assets/cover.png)
+
 **Docker images that turn Claude Code and OpenCode into Multica agents.**
 
 One container, four environment variables, and you have an agent runtime that

@@ -1,5 +1,7 @@
 # Multica Runtime
 
+![Multica Runtime — one container, any stack](assets/cover.png)
+
 **Docker images that turn Claude Code and OpenCode into Multica agents.**
 
 One container, four environment variables, and you have an agent runtime that

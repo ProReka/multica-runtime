@@ -133,8 +133,9 @@ The same content is published at **<https://proreka.github.io/multica-runtime/>*
 
 - Docker 24+ (Compose v2) or any orchestrator that can run a container
 - A Multica token
-- An Anthropic-compatible endpoint, or an OpenAI-compatible router
-  (detected automatically)
+- An Anthropic-compatible endpoint. OpenCode can also talk to an
+  OpenAI-compatible router; Claude Code still needs an Anthropic-compatible
+  surface. `AI_PROTOCOL=auto` picks the right one for OpenCode.
 
 No GPU, no privileged mode, no Docker socket — except for the optional Swarm
 autoscaler, which needs it to call `docker service scale`.
@@ -164,7 +165,6 @@ Claude Code and OpenCode are supported now. **Codex CLI is coming soon** — see
 Issues and PRs are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and
 [Development](docs/development.md). CI builds the base image on every pull
 request and the full variant matrix on `main`; a local Docker daemon is optional.
-is optional.
 
 ## License
 

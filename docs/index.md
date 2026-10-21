@@ -76,8 +76,9 @@ Both agent CLIs are configured from those values. Native variables
 
 - Docker 24+ (Compose v2) or any orchestrator that can run a container
 - A Multica token
-- An Anthropic-compatible endpoint, or an OpenAI-compatible router
-  (`/v1/models` is probed automatically)
+- An Anthropic-compatible endpoint. OpenCode can also use an OpenAI-compatible
+  router (`/v1/models` is probed with `AI_PROTOCOL=auto`); Claude Code still
+  needs an Anthropic-compatible surface.
 
 No GPU, no privileged mode, no Docker socket — except for the optional Swarm
 autoscaler, which needs it to call `docker service scale`.

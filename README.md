@@ -165,9 +165,8 @@ DeepSeek Harness, Pi, Oh-My-Pi, Hermes Agent, OpenClaw and more are on the
 ## Contributing
 
 Issues and PRs are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and
-[Development](docs/development.md). Brand assets and cover-art prompts live in
-[BRANDING.md](BRANDING.md). CI builds the base image on every pull request and
-the full variant matrix on `main`; a local Docker daemon is optional.
+[Development](docs/development.md). CI builds the base image on every pull
+request and the full variant matrix on `main`; a local Docker daemon is optional.
 
 ## License
 

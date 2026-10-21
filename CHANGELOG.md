@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Harness, Pi, Oh-My-Pi, Hermes Agent and OpenClaw.
 - Autoscaler design notes for a metrics endpoint, KEDA, a signed webhook, Nomad,
   and the limits of Docker Compose standalone.
-- Brand guide and copy-paste cover-art prompts in `BRANDING.md`.
 
 ## [0.2.0] - 2026-10-21
 

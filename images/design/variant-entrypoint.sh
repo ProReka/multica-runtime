@@ -58,6 +58,12 @@ if [ "$ready" = "1" ]; then
 else
     warn "Penpot MCP server did not answer on :${MCP_PORT} — see ${STATE_DIR}/mcp.log"
     tail -n 20 "${STATE_DIR}/mcp.log" 2>/dev/null >&2 || true
+    # The server's pino logger also writes timestamped files under LOG_DIR.
+    mcp_log="$(find "${STATE_DIR}" -maxdepth 2 -type f -name 'penpot-mcp-*.log' 2>/dev/null | sort | tail -n 1 || true)"
+    if [ -n "$mcp_log" ]; then
+        warn "newest MCP log: ${mcp_log}"
+        tail -n 40 "$mcp_log" >&2 || true
+    fi
 fi
 
 # --- 3. Penpot plugin server -------------------------------------------------

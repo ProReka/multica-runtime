@@ -38,6 +38,7 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 	@bash scripts/test-worktrees.sh
 	@$(PYTHON) scripts/test-ci-plan.py
 	@$(PYTHON) scripts/test-ci-release.py
+	@$(PYTHON) scripts/test-checkout-recovery.py
 	@printf 'Shell scripts OK.\n'
 
 build: ## Build images locally (VARIANTS=base,node,...)

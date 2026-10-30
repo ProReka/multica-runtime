@@ -50,6 +50,7 @@ jobs:
           bash scripts/test-worktrees.sh
           python3 scripts/test-ci-plan.py
           python3 scripts/test-ci-release.py
+          python3 scripts/test-checkout-recovery.py
 
       - name: Autoscaler unit tests
         run: |

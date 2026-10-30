@@ -184,6 +184,10 @@ RUN set -eux; \
 
 # --- Entrypoint --------------------------------------------------------------
 COPY entrypoint.sh /usr/local/bin/multica-entrypoint
+COPY multica-wrapper.py /usr/local/bin/multica-wrapper
+RUN mv /usr/local/bin/multica /usr/local/lib/multica-cli; \
+    mv /usr/local/bin/multica-wrapper /usr/local/bin/multica; \
+    chmod 0755 /usr/local/bin/multica
 COPY lib/ /usr/local/lib/multica/
 RUN chmod 0755 /usr/local/bin/multica-entrypoint /usr/local/lib/multica/*.sh
 

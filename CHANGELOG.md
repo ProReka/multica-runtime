@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Install `libatomic1` in both base-image stages for Node.js 26's shared-library
+  dependency.
 - Prune expired stale Git worktree registrations in cached repositories before
   daemon startup, reducing checkout failures after interrupted tasks without
   deleting task files or valid worktrees.

@@ -36,6 +36,8 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 		echo "shellcheck not installed; skipping (CI runs it)"; \
 	fi
 	@bash scripts/test-worktrees.sh
+	@$(PYTHON) scripts/test-ci-plan.py
+	@$(PYTHON) scripts/test-ci-release.py
 	@printf 'Shell scripts OK.\n'
 
 build: ## Build images locally (VARIANTS=base,node,...)

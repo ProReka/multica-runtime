@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Build only affected images, map version changes to Dockerfile ARGs, and skip
+  Docker for documentation-only changes. Keep PHP/design runtime tests in their
+  image jobs; limit variant publication to three concurrent jobs.
+- Automatically publish a patch release after successful image-changing main
+  builds by promoting existing GHCR manifests. Tag pushes no longer rebuild
+  every image. Run the full standalone lint workflow on PRs, not again on merge.
+
 - Refresh pinned tools to upstream stable releases checked on 2026-10-30:
   Multica CLI 0.7.1, Claude Code 2.1.314, OpenCode V1 1.19.5, Node.js 26.13.0 LTS,
   GitHub CLI 2.103.3, pnpm 12.16.1, Wrangler 4.156.0, uv 0.13.6, Ruff 0.17.3,

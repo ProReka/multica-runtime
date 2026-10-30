@@ -27,7 +27,7 @@ ARG TARGETARCH
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates curl xz-utils; \
+    apt-get install -y --no-install-recommends ca-certificates curl xz-utils libatomic1; \
     rm -rf /var/lib/apt/lists/*; \
     case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
         amd64) node_arch="x64" ;; \
@@ -86,6 +86,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
+        libatomic1 \
         curl \
         wget \
         gnupg \

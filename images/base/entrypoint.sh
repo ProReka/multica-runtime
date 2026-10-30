@@ -99,6 +99,7 @@ main() {
     fi
 
     mr_configure_multica
+    mr_prune_worktrees
     mr_start_daemon
 }
 

@@ -8,7 +8,7 @@ ghcr.io/proreka/multica-runtime:<variant>
 
 | Tag | Toolchain | Use for | Architectures |
 |---|---|---|---|
-| `base` | Node 24, Python 3, git/gh, Chromium, build tools | general tasks, scripts, docs | amd64, arm64 |
+| `base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools | general tasks, scripts, docs | amd64, arm64 |
 | `node` | pnpm, yarn, TypeScript, Playwright, vitest, eslint, prettier | web frontends, Node services | amd64, arm64 |
 | `python` | uv, Poetry, ruff, mypy, pytest | Python services, data work | amd64, arm64 |
 | `php` | PHP 8.4, Composer, Laravel, MariaDB, PostgreSQL, Redis | Laravel/Symfony | amd64, arm64 |

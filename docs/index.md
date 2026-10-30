@@ -36,7 +36,7 @@ These images put each stack in a container that:
 
 | Image tag | What you get |
 |---|---|
-| `:base` | Node 24, Python 3, git/gh, Chromium, build tools, Claude Code, OpenCode, Multica CLI |
+| `:base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools, Claude Code, OpenCode, Multica CLI |
 | `:node` | pnpm, yarn, TypeScript, Playwright, vitest, eslint, prettier |
 | `:python` | uv, Poetry, ruff, mypy, pytest, C headers |
 | `:php` | PHP 8.4, Composer, Laravel, MariaDB + PostgreSQL + Redis inside the container |

@@ -14,6 +14,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Autoscaler design notes for a metrics endpoint, KEDA, a signed webhook, Nomad,
   and the limits of Docker Compose standalone.
 
+### Changed
+
+- Refresh pinned tools to upstream stable releases checked on 2026-10-30:
+  Multica CLI 0.7.1, Claude Code 2.1.314, OpenCode V1 1.19.5, Node.js 26.13.0 LTS,
+  GitHub CLI 2.103.3, pnpm 12.16.1, Wrangler 4.156.0, uv 0.13.6, Ruff 0.17.3,
+  mypy 2.4.1, pytest 9.2.0, fontTools 4.68.0, Flutter 3.47.9,
+  Android command-line tools 16111833, Terraform 1.17.1, kubectl 1.37.2,
+  AWS CLI 2.39.2, Docker CLI 29.9.2, and Docker Compose 5.6.1.
+- Keep OpenCode on the V1 `opencode-ai` package for Multica-managed MCP
+  compatibility, with automatic updates disabled.
+- Add Android platform 37.2 and build-tools 37.0.0; update retained build-tools
+  to 36.1.0 and 35.0.1. Keep Android platforms 36 and 35 for compatibility.
+
+### Fixed
+
+- Install `libatomic1` in both base-image stages for Node.js 26's shared-library
+  dependency.
+- Prune expired stale Git worktree registrations in cached repositories before
+  daemon startup, reducing checkout failures after interrupted tasks without
+  deleting task files or valid worktrees.
+
 ## [0.2.0] - 2026-10-21
 
 ### Added

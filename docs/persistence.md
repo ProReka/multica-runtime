@@ -29,6 +29,32 @@ It never deletes task directories or files. Invalid task directories may still
 need manual investigation; startup pruning is not a repair for every checkout
 failure.
 
+### Checkout path already exists
+
+This error can also mean the target is an ordinary directory (even an empty
+one or a normal clone with a `.git/` directory), not a linked Git worktree.
+`git worktree prune` cannot fix that: it only removes stale registrations.
+Multica 0.7.2 still rejects such a target. Restarting the runtime or upgrading
+alone does not repair the existing directory.
+
+Stop the affected task before recovery. Preserve the directory and its cached
+repository metadata; they may contain uncommitted files or unpushed commits.
+Prefer a fresh task run rather than changing the old checkout:
+
+```bash
+multica issue runs <issue-id> --full-id
+multica issue rerun-task <run-id> --fresh
+```
+
+Use the relevant run ID from the first command. In Multica 0.7.2, task rerun
+`--fresh` creates a new session and working directory. An ordinary rerun reuses
+the previous directory and can hit the same error again. Review the preserved
+old files and recover needed changes separately.
+
+Do not confuse this with `multica repo checkout --fresh`: that flag can discard
+changes in a recognized checkout and does not bypass the invalid-path guard.
+Do not delete the workspaces volume, run `git clean`, or fabricate a `.git` file.
+
 ## What is not
 
 - `/tmp/multica-db` (PHP databases) — recreated on every start;

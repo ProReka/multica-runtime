@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update Multica CLI to 0.7.2. Document fresh-task recovery for existing checkout
+  directories rejected as invalid worktrees; startup pruning and the CLI upgrade
+  do not repair those directories or delete their contents.
 - Build only affected images, map version changes to Dockerfile ARGs, and skip
   Docker for documentation-only changes. Keep PHP/design runtime tests in their
   image jobs; limit variant publication to three concurrent jobs.

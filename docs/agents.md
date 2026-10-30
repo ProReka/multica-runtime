@@ -5,7 +5,7 @@ The image contains two agent CLIs, both installed and pinned at build time:
 | CLI | Package | Command |
 |---|---|---|
 | Claude Code | `@anthropic-ai/claude-code` | `claude` |
-| OpenCode | `opencode-ai` | `opencode` |
+| OpenCode V1 | `opencode-ai` | `opencode` |
 
 More CLIs are planned, but none are installed yet:
 
@@ -70,6 +70,12 @@ OpenCode uses `AI_MODEL` (or `MULTICA_OPENCODE_MODEL`) as its main model and
 subagent model that exists there, because OpenCode refuses to start a session
 with an unknown model; otherwise subagents inherit the main model. With
 `AI_MODELS_PROBE=0`, your explicit subagent model is trusted as-is.
+
+## OpenCode version policy
+
+The image stays on OpenCode V1 (`opencode-ai`) for compatibility with
+Multica-managed MCP servers. OpenCode V2 is not installed: Multica CLI 0.7.1
+rejects V2 tasks requiring those servers (`ErrOpenCodeV2MCPUnsupported`).
 
 ## MCP servers
 

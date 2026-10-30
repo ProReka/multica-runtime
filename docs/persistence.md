@@ -16,6 +16,19 @@ restart, upgrade, or scale-to-zero lives on one volume.
 The daemon skips dot-directories at the workspace root, so the state directories
 are never mistaken for task workspaces.
 
+## Stale Git worktrees
+
+Before starting the daemon, the entrypoint runs `git worktree prune` on cached
+bare repositories under `/workspaces/.repos/<workspace>/<repo>.git` (or
+`$MULTICA_WORKSPACES_ROOT/.repos`). Interrupted tasks can leave stale worktree
+registrations that cause `worktree path already exists and is not a valid git
+worktree` errors.
+
+Pruning is best-effort and preserves locked registrations and valid worktrees.
+It never deletes task directories or files. Invalid task directories may still
+need manual investigation; startup pruning is not a repair for every checkout
+failure.
+
 ## What is not
 
 - `/tmp/multica-db` (PHP databases) — recreated on every start;

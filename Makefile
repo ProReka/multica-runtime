@@ -35,6 +35,7 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 	else \
 		echo "shellcheck not installed; skipping (CI runs it)"; \
 	fi
+	@bash scripts/test-worktrees.sh
 	@printf 'Shell scripts OK.\n'
 
 build: ## Build images locally (VARIANTS=base,node,...)

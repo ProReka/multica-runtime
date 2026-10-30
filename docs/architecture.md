@@ -6,7 +6,7 @@
                  debian:trixie-slim
                          │
                   ┌──────▼──────┐
-                  │    base     │  Node 24 · Python 3 · git/gh · Chromium
+                  │    base     │  Node 26 · Python 3 · git/gh · Chromium
                   │             │  Claude Code · OpenCode · Multica CLI
                   └──────┬──────┘
       ┌──────────┬───────┼────────┬─────────┬──────────┬────────┐

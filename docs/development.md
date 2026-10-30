@@ -2,9 +2,17 @@
 
 ## CI builds Docker. You do not have to.
 
-Every image is built in GitHub Actions. A pull request builds and smoke-tests the
-base; merging to `main` builds and pushes the full variant matrix. A local Docker
-daemon is optional and only useful for fast iteration.
+Images are built in GitHub Actions only when affected. Base changes rebuild all
+inheriting images on `main`; a variant-only change builds that variant. Version
+changes are mapped to Dockerfile ARGs, so a Ruff bump builds only Python, while
+a shared Playwright bump builds Node, QA, and design. Docs-only changes never
+build Docker images. A local Docker daemon remains optional.
+
+PRs validate a changed base once and any directly changed variants against it;
+otherwise affected variants use the published base (amd64). Main publishes affected images for their supported architectures,
+then smoke-tests them in the same job; PHP/design also run service checks.
+Publish jobs run at most three variants concurrently. Main compares against the
+last successful build, so failed or coalesced pushes are not forgotten.
 
 Lint, version checks, and the autoscaler tests need nothing but Bash, Python and
 (optionally) shellcheck:
@@ -53,21 +61,23 @@ That is for maintainers with registry credentials; CI does it automatically.
 
 ## Releasing
 
-Images are published from `main` on every push. A release adds immutable version
-tags, runs the runtime checks and creates a GitHub release:
+After a successful image-changing push to `main`, CI automatically increments
+the latest stable release's patch version, adds versioned GHCR tags, and creates
+a GitHub release. No manual Git tag, second build, or second test matrix.
 
-```bash
-git tag -a v0.3.0 -m "Multica Runtime v0.3.0"
-git push origin v0.3.0
-```
+Release promotion copies manifest references, not image layers. Unchanged
+variants reuse their previous image. All source digests are resolved before
+promotion; a release appears only after every versioned tag succeeds. The Git
+tag reserves the patch number before promotion; failed promotions can leave an
+unused patch number, never overwrite its image tags. Re-running an already
+released commit leaves its versioned tags untouched. Older commits cannot release
+after a newer main commit exists. OCI version labels
+keep the original build commit, including for reused images.
 
-This publishes `v0.3.0`, `v0.3.0-base` … `v0.3.0-design` and
-`multica-autoscaler:v0.3.0`, then creates the release.
-
-Do not tag a commit whose message contains `[skip ci]`. GitHub Actions treats
-that marker as "do not run workflows for this commit" and the tag push is
-skipped too. If that happens, dispatch the Build workflow with
-`--ref v0.3.0 -f variants=all -f push=true`; the tag is still read from the ref.
+Manual recovery: dispatch Build on `main` with `variants=all` or a comma-separated
+subset. This builds/publishes only the selection; it does not create a release.
+Tag pushes no longer trigger builds. Manual publication is restricted to `main`. Major/minor releases remain a separate
+maintainer decision.
 
 ## Adding a variant
 
@@ -92,7 +102,7 @@ skipped too. If that happens, dispatch the Build workflow with
 4. Add the context to `scripts/build.sh` (`context_for`) and the expected
    binaries to `scripts/test-image.sh` (`commands_for`).
 
-5. Add it to the CI matrix in `.github/workflows/build.yml`.
+5. Add it to the image lists in `scripts/ci-plan.py` and `scripts/ci-release.py`.
 
 6. Document it in `docs/variants.md` and the README table.
 
@@ -143,10 +153,9 @@ Hooks run in lexical order and get the resolved environment (`CLAUDE_CONFIG_DIR`
 
 ## Release
 
-1. Bump `versions.env` in a PR (Dependabot does this weekly).
-2. Merge to `main`; CI builds and pushes `:base`, `:node`, … and `:sha-*`.
-3. Tag `vX.Y.Z`; CI rebuilds and publishes `:vX.Y.Z-base`, … plus `:latest`.
-4. Add the changelog entry.
+1. Update tools/code and `CHANGELOG.md` in a PR.
+2. Merge to `main`; CI builds/tests only affected images and updates rolling tags.
+3. CI promotes existing images to the next patch version and creates the release.
 
 ## Testing the entrypoint without a daemon
 

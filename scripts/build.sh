@@ -18,6 +18,7 @@
 #   USE_BUILDX  1 = use buildx without pushing (for CI cache)
 #   PLATFORMS   buildx platforms when pushing (default: linux/amd64,linux/arm64)
 #   PLATFORM    single platform for buildx --load (default: host)
+#   BASE_IMAGE  optional parent image override (default: repository's :base)
 #   VERSION     release version, used in tags and the OCI version label
 #   SHA         git sha used in tags (default: current short sha)
 #   CACHE_FROM  optional buildx cache source (type=gha,scope=...)
@@ -67,11 +68,10 @@ VARIANTS="${VARIANTS:-base,node,python,php,go,flutter,devops,qa,design,autoscale
 
 if [ "$PUSH" = "1" ]; then
     REPO="${REGISTRY}/${IMAGE}"
-    BASE_IMAGE="${REPO}:base"
 else
     REPO="${IMAGE}"
-    BASE_IMAGE="${IMAGE}:base"
 fi
+BASE_IMAGE="${BASE_IMAGE:-${REPO}:base}"
 
 IFS=',' read -r -a WANTED <<< "$VARIANTS"
 

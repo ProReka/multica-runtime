@@ -3,230 +3,198 @@ name: Build
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    paths:
+      - 'images/**'
+      - 'autoscaler/**'
+      - 'versions.env'
+      - 'scripts/build.sh'
+      - 'scripts/test-image.sh'
+      - 'scripts/test-runtime.sh'
+      - 'scripts/ci-*'
+      - 'scripts/test-ci-*'
+      - '.github/workflows/build.yml'
   pull_request:
+    paths:
+      - 'images/**'
+      - 'autoscaler/**'
+      - 'versions.env'
+      - 'scripts/build.sh'
+      - 'scripts/test-image.sh'
+      - 'scripts/test-runtime.sh'
+      - 'scripts/ci-*'
+      - 'scripts/test-ci-*'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:
       variants:
-        description: "Comma-separated variants to build and push (all, or any of node,python,php,go,flutter,devops,qa,design,autoscaler)"
-        required: true
+        description: 'auto, all, or comma-separated image names (including base)'
         default: all
-      push:
-        description: "Push images to GHCR"
-        type: boolean
-        default: false
+        required: true
 
 permissions:
   contents: read
-  packages: write
+  actions: read
 
+# Never overlap publishers. PRs can discard superseded checks.
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   plan:
-    name: Plan
     runs-on: ubuntu-24.04
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-      version: ${{ steps.version.outputs.version }}
-      push: ${{ steps.push.outputs.push }}
+      pr_variants: ${{ steps.plan.outputs.pr_variants }}
+      base: ${{ steps.plan.outputs.base }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      publish: ${{ steps.plan.outputs.publish }}
     steps:
-      - name: Version from tag
-        id: version
-        run: |
-          set -euo pipefail
-          version=""
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            version="${GITHUB_REF_NAME#v}"
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Push?
-        id: push
-        run: |
-          set -euo pipefail
-          push=false
-          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            push=true
-          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "${{ inputs.push }}" = "true" ]; then
-            push=true
-          fi
-          echo "push=$push" >> "$GITHUB_OUTPUT"
-
-      - name: Variant matrix
-        id: matrix
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: plan
         env:
-          INPUT_VARIANTS: ${{ inputs.variants }}
+          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
+          VARIANTS: ${{ inputs.variants || 'auto' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          all="node python php go flutter devops qa design autoscaler"
-          wanted="${INPUT_VARIANTS:-all}"
-          if [ "$wanted" = "all" ] || [ -z "$wanted" ]; then
-            list="$all"
-          else
-            list="$(printf '%s' "$wanted" | tr ',' ' ')"
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            # Include changes from failed or coalesced main runs, not just this push.
+            BEFORE="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/build.yml/runs?branch=main&event=push&status=success&per_page=1" --jq '.workflow_runs[0].head_sha // ""')"
           fi
+          make lint
+          python3 scripts/ci-plan.py --before "$BEFORE" --after "$AFTER" --variants "$VARIANTS" > plan.json
+          python3 - <<'PY'
+          import json, os
+          plan = json.load(open('plan.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              for key, value in plan.items():
+                  print(f'{key}={json.dumps(value, separators=(",", ":"))}', file=out)
+          print(json.dumps(plan, indent=2))
+          PY
 
-          json='{"include":['
-          first=1
-          for variant in $list; do
-            case "$variant" in
-              node|python|php|go|devops|qa|design|autoscaler) platforms="linux/amd64,linux/arm64" ;;
-              flutter) platforms="linux/amd64" ;;
-              *) echo "unknown variant: $variant" >&2; exit 2 ;;
-            esac
-            [ "$first" = "1" ] || json="${json},"
-            first=0
-            json="${json}{\"variant\":\"${variant}\",\"platforms\":\"${platforms}\"}"
+  pr:
+    name: Test affected images (amd64)
+    needs: plan
+    if: github.event_name == 'pull_request' && needs.plan.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and smoke-test affected images
+        env:
+          BUILD_BASE: ${{ needs.plan.outputs.base }}
+          PR_VARIANTS: ${{ needs.plan.outputs.pr_variants }}
+        run: |
+          set -euo pipefail
+          # Native Docker shares the locally built base with dependent builds.
+          export PLATFORM=linux/amd64
+          if [ "$BUILD_BASE" = true ]; then
+            VARIANTS=base scripts/build.sh
+            scripts/test-image.sh base
+            export BASE_IMAGE=multica-runtime:base
+          else
+            export BASE_IMAGE=ghcr.io/proreka/multica-runtime:base
+          fi
+          for variant in $(jq -r '.[]' <<< "$PR_VARIANTS"); do
+            VARIANTS="$variant" scripts/build.sh
+            scripts/test-image.sh "$variant"
+            if [ "$variant" = php ] || [ "$variant" = design ]; then
+              IMAGE="multica-runtime:$variant" scripts/test-runtime.sh "$variant"
+            fi
           done
-          json="${json}]}"
-          echo "matrix=$json" >> "$GITHUB_OUTPUT"
 
   base:
-    name: Base image
+    name: Publish base
     needs: plan
+    if: github.event_name != 'pull_request' && needs.plan.outputs.base == 'true'
     runs-on: ubuntu-24.04
-    env:
-      VERSION: ${{ needs.plan.outputs.version }}
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v7
-
-      - name: Log in to GHCR
-        if: needs.plan.outputs.push == 'true'
-        uses: docker/login-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: docker/setup-buildx-action@v4
-
-      - name: Build base
-        env:
-          PUSH: ${{ needs.plan.outputs.push }}
+      - name: Build and test
         run: |
-          set -euo pipefail
-          if [ "$PUSH" = "true" ]; then
-            VARIANTS=base PUSH=1 VERSION="$VERSION" \
-              CACHE_FROM=type=gha,scope=base \
-              CACHE_TO=type=gha,mode=max,scope=base \
-              scripts/build.sh
-          else
-            VARIANTS=base USE_BUILDX=1 PLATFORM=linux/amd64 \
-              CACHE_FROM=type=gha,scope=base \
-              CACHE_TO=type=gha,mode=max,scope=base \
-              scripts/build.sh
-          fi
-
-      - name: Pull pushed base
-        if: needs.plan.outputs.push == 'true'
-        run: docker pull ghcr.io/proreka/multica-runtime:base
-
-      - name: Smoke test base
-        env:
-          PUSH: ${{ needs.plan.outputs.push }}
-        run: |
-          set -euo pipefail
-          if [ "$PUSH" = "true" ]; then
-            IMAGE_PREFIX=ghcr.io/proreka/multica-runtime scripts/test-image.sh base
-          else
-            scripts/test-image.sh base
-          fi
+          VARIANTS=base PUSH=1 CACHE_FROM=type=gha,scope=base CACHE_TO=type=gha,mode=max,scope=base scripts/build.sh
+          docker pull ghcr.io/proreka/multica-runtime:base
+          IMAGE_PREFIX=ghcr.io/proreka/multica-runtime scripts/test-image.sh base
 
   variants:
-    name: ${{ matrix.variant }} (${{ matrix.platforms }})
+    name: Publish ${{ matrix.variant }}
     needs: [plan, base]
-    if: needs.plan.outputs.push == 'true'
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      needs.plan.result == 'success' &&
+      (needs.base.result == 'success' || needs.base.result == 'skipped') &&
+      needs.plan.outputs.matrix != '{"include":[]}'
     runs-on: ubuntu-24.04
+    permissions:
+      packages: write
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
-    env:
-      VERSION: ${{ needs.plan.outputs.version }}
     steps:
       - uses: actions/checkout@v7
-
       - name: Free disk space
-        run: |
-          set -euo pipefail
-          # The Flutter image is ~10 GB and design builds a monorepo. Hosted
-          # runners are tight; remove toolchains this project does not use.
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
-          sudo docker image prune -af || true
-          df -h /
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v4
+        if: matrix.variant == 'flutter' || matrix.variant == 'design'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: docker/setup-buildx-action@v4
-
-      - name: Build ${{ matrix.variant }}
+      - name: Build and test
+        env:
+          VARIANTS: ${{ matrix.variant }}
+          PLATFORMS: ${{ matrix.platforms }}
+          PUSH: '1'
+          CACHE_FROM: type=gha,scope=${{ matrix.variant }}
+          CACHE_TO: type=gha,mode=max,scope=${{ matrix.variant }}
         run: |
           set -euo pipefail
-          VARIANTS="${{ matrix.variant }}" PUSH=1 \
-            PLATFORMS="${{ matrix.platforms }}" VERSION="$VERSION" \
-            CACHE_FROM=type=gha,scope=${{ matrix.variant }} \
-            CACHE_TO=type=gha,mode=max,scope=${{ matrix.variant }} \
-            scripts/build.sh
-
-      - name: Smoke test ${{ matrix.variant }}
-        run: |
-          set -euo pipefail
-          if [ "${{ matrix.variant }}" = "autoscaler" ]; then
+          scripts/build.sh
+          if [ "$VARIANTS" = autoscaler ]; then
             docker pull ghcr.io/proreka/multica-autoscaler:latest
-            AUTOSCALER_IMAGE=ghcr.io/proreka/multica-autoscaler:latest \
-              scripts/test-image.sh autoscaler
+            AUTOSCALER_IMAGE=ghcr.io/proreka/multica-autoscaler:latest scripts/test-image.sh autoscaler
           else
-            docker pull "ghcr.io/proreka/multica-runtime:${{ matrix.variant }}"
-            IMAGE_PREFIX=ghcr.io/proreka/multica-runtime \
-              scripts/test-image.sh "${{ matrix.variant }}"
+            docker pull "ghcr.io/proreka/multica-runtime:$VARIANTS"
+            IMAGE_PREFIX=ghcr.io/proreka/multica-runtime scripts/test-image.sh "$VARIANTS"
+            if [ "$VARIANTS" = php ] || [ "$VARIANTS" = design ]; then
+              IMAGE="ghcr.io/proreka/multica-runtime:$VARIANTS" scripts/test-runtime.sh "$VARIANTS"
+            fi
           fi
 
-  runtime:
-    name: ${{ matrix.variant }} runtime
-    needs: [plan, variants]
-    if: needs.plan.outputs.push == 'true'
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        variant: [php, design]
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull ${{ matrix.variant }}
-        run: docker pull "ghcr.io/proreka/multica-runtime:${{ matrix.variant }}"
-
-      - name: Runtime smoke test
-        env:
-          IMAGE: ghcr.io/proreka/multica-runtime:${{ matrix.variant }}
-        run: scripts/test-runtime.sh "${{ matrix.variant }}"
-
   release:
-    name: GitHub release
-    if: github.ref_type == 'tag'
-    needs: [plan, variants, runtime]
+    name: Release existing images (no rebuild)
+    needs: [plan, base, variants]
+    if: >-
+      always() && github.event_name == 'push' &&
+      needs.plan.result == 'success' && needs.plan.outputs.publish == 'true' &&
+      (needs.base.result == 'success' || needs.base.result == 'skipped') &&
+      (needs.variants.result == 'success' || needs.variants.result == 'skipped')
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      packages: write
     steps:
-      - uses: softprops/action-gh-release@v3
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
         with:
-          generate_release_notes: true
-          name: ${{ github.ref_name }}
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-rc') }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v4
+      - name: Promote images and create patch release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/ci-release.py

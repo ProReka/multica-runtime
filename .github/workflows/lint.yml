@@ -1,8 +1,6 @@
 name: Lint
 
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -46,6 +44,12 @@ jobs:
           hadolint --version
           find images autoscaler -name Dockerfile -print0 \
             | xargs -0 hadolint
+
+      - name: Runtime and CI regression checks
+        run: |
+          bash scripts/test-worktrees.sh
+          python3 scripts/test-ci-plan.py
+          python3 scripts/test-ci-release.py
 
       - name: Autoscaler unit tests
         run: |

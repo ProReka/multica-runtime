@@ -34,10 +34,16 @@ failure.
 This error can also mean the target is an ordinary directory (even an empty
 one or a normal clone with a `.git/` directory), not a linked Git worktree.
 `git worktree prune` cannot fix that: it only removes stale registrations.
-Multica 0.7.2 still rejects such a target. Restarting the runtime or upgrading
-alone does not repair the existing directory.
+Multica 0.7.2 itself still rejects such a target. The runtime now wraps
+`multica repo checkout`: on this exact failure, it moves a direct-child directory
+without `.git` into `/workspaces/.checkout-recovery/<unique-name>/`, prunes stale
+registrations, and retries once. Files are preserved, not merged into the new
+checkout. Recovery paths are printed to stderr. Concurrent checkouts in the same
+task directory are serialized. Valid Git checkouts, symlinks, and paths outside
+the workspace are never moved. Other commands execute the original CLI directly.
 
-Stop the affected task before recovery. Preserve the directory and its cached
+If automatic recovery refuses the path or retry fails, stop the affected task
+before manual recovery. Preserve the directory and its cached
 repository metadata; they may contain uncommitted files or unpushed commits.
 Prefer a fresh task run rather than changing the old checkout:
 

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Read-only `scripts/check-runtime.py` pickup diagnosis: workspace-specific
+  binding, heartbeat, paginated task history, recent activity and agent-level
+  saturation. Flag empty running tasks, recent tool timeouts and execution errors
+  instead of declaring timestamp activity healthy; regression checks run under
+  `make lint`. Document safe frontend
+  queue/session-error triage without interrupting active work.
 - Roadmap for new agent CLI adapters: Codex CLI, Qwen Code, Grok Build, DeepSeek
   Harness, Pi, Oh-My-Pi, Hermes Agent and OpenClaw.
 - Autoscaler design notes for a metrics endpoint, KEDA, a signed webhook, Nomad,

@@ -43,6 +43,77 @@ docker compose run --rm -e HTTPS_PROXY=http://proxy:3128 runtime
 4. A container with an old `MULTICA_DAEMON_ID` and a new one are two runtimes.
    Agents bound to the old id do not follow automatically.
 
+## Issues wait / runtime looks stale
+
+Diagnose the **workspace-specific bound runtime**, not another workspace's
+runtime with the same daemon id:
+
+```bash
+python3 scripts/check-runtime.py --workspace-id <workspace-id> --agent-id <agent-id>
+```
+
+This read-only check paginates agent runs, compares heartbeat and recent run
+messages, and prints only status metadata. Exit codes: `0` no pickup anomaly,
+`1` investigation needed, `2` incomplete diagnosis. Run it from an authenticated
+CLI context; never put a token in the command. It does not restart or cancel work.
+
+- `SATURATED`: `agent.max_concurrent_tasks` is full. This is independent of
+  `MULTICA_DAEMON_MAX_CONCURRENT_TASKS`; increasing daemon capacity alone cannot
+  unblock the agent. Wait for active work, or review an explicit agent-limit
+  increase against available CPU/memory and API capacity.
+- `ACTIVITY`: recent events exist; useful progress is **not** verified. Read tool
+  results and changes, not just timestamps or message counts.
+- `STALLED`: last tool result timed out, even if that event is fresh.
+- `FAILED`: last event is an execution error despite server `running` status.
+- Zero messages on a running task is unverified execution, not healthy progress.
+- `CHECK`: no recent messages is a warning, not proof of a dead process. Inspect
+  the run before cancelling; a long tool call may be legitimate.
+- `OFFLINE`: verify service capacity, outbound connectivity and registration.
+  A process-only container healthcheck is not proof of server connectivity.
+- `api_invalid_request` with unmatched `tool_use_id` / `tool_result`: malformed
+  provider conversation history, not heartbeat failure. Review the run error and
+  router protocol. After confirming no live execution for that issue, use
+  `multica issue rerun <issue>` for a fresh run; do not resume the broken session,
+  delete session files, or restart unrelated active runs. Reruns can repeat side
+  effects, so check previous changes first.
+
+### Frontend investigation — 2026-11-01
+
+At approximately 11:55 UTC, GFS frontend's bound OpenCode runtime was online;
+ECS service had one healthy task. Agent concurrency was **2**, daemon concurrency
+**3**. Two running tasks had recent tool activity; two more tasks were queued.
+The initial interpretation (only agent saturation) was incomplete: recent tool
+events did not prove sustained progress. GFS-250 subsequently failed
+`idle_watchdog` at 12:44:20 UTC after its last message at 12:33:22. Its replacement
+produced a 300-second `npm ci` timeout with no output. GFS-249's next run initially
+had zero messages. Both replacement runs then emitted `Cannot connect to API`
+at approximately 12:55 UTC despite `running` status.
+
+Live ECS inspection found the shared `gfs-ai-9router` service at desired 1,
+running 0. Its essential `headroom` container exited 137 with
+`OutOfMemoryError: container killed due to memory usage`; its hard memory limit
+was 1024 MiB. Essential-container coupling took the router down too. Router logs
+also showed compression timeouts and upstream free-provider 429 responses before
+the outage. These are separate observations; they do not prove the cause of the
+earlier idle-watchdog failure or npm timeout.
+
+Recovery: forced a new deployment of **only** `gfs-ai-9router`, keeping task
+definition revision 4 and desired count 1. Frontend runs, credentials, persistent
+files and agent limits were not changed. The ECS stable waiter subsequently succeeded and the ALB target returned
+`healthy`. End-to-end agent execution recovery remains unverified; deployment
+acceptance or target health alone is not proof of successful task completion.
+Permanent router work belongs in its infrastructure/source repository: review
+headroom request concurrency and memory, then decide whether compression should
+fail open rather than killing an essential router dependency. Do not silently
+weaken controls or increase billing commitments here.
+
+One earlier run also failed `api_invalid_request` (unmatched tool-result history);
+a subsequent run for that issue was already queued. The live image used Multica
+0.6.1 / OpenCode 1.18.34, older than this repository's pins; updating the repo does
+not update ECS automatically. Deploy through the infrastructure review process,
+then verify task pickup and run output. This check is diagnostic, not an automatic
+recovery controller or a guarantee against upstream session-history errors.
+
 ## Claude Code returns 401
 
 The credential style is wrong. See

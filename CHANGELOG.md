@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve configured OpenCode main, subagent and tier models when the router
+  catalogue probe fails; recovery no longer leaves only the default model usable.
+
 ### Added
 
 - Read-only `scripts/check-runtime.py` pickup diagnosis: workspace-specific

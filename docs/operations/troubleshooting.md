@@ -7,6 +7,73 @@ and CLI versions — and never a secret.
 docker compose logs --tail=50 runtime
 ```
 
+## OpenCode reports `Unexpected server error`
+
+A heartbeat is not evidence that an agent can execute. Check the model catalogue
+inside the affected worker as its runtime user (`opencode models <provider>`),
+not only the router's `/v1/models` endpoint. Never dump provider configuration:
+it contains credentials.
+
+On 2026-11-02, GFS always-on started while its router was unavailable. Its generated
+catalogue contained only `9router/general`; Technical Lead requested `coding-high`.
+A fresh OpenCode run reproduced the same error, exit 1. Adding only the missing
+model through a process-scoped configuration override produced text `OK`, exit 0.
+This proves the catalogue failure for this worker, not recovery of all agents.
+
+The fallback now includes configured main, subagent and tier models. Successful
+probes remain authoritative. Existing workers require an approved catalogue
+refresh or rollout after router recovery; repository changes alone do not repair
+running containers. Preserve credentials, unrelated settings and in-flight work.
+Verify an actual Multica agent response afterward, not merely ECS health.
+
+### Approved live recovery — 2026-11-02
+
+Human approved refreshing only the always-on catalogue without restart/deployment.
+Verified AWS account and current task identity first. Fetched the authenticated
+catalogue internally, preserving credential values without displaying them.
+Added missing models atomically (1 to 212); preserved owner/mode and all unrelated
+settings. Retained a permission-preserving backup beside the config as
+`opencode.json.before-catalogue-refresh`. Rollback restores that file atomically;
+never print either file.
+
+End-to-end Multica smoke test `GFS-254`, run
+`01a19a58-7b73-7ec0-8658-361b61338f0c`, completed with actual text `RUNTIME_OK`.
+No always-on restart, service rollout, credential change or Terraform apply.
+Frontend/DevOps tests `GFS-255` / `GFS-256` were queued separately; their existing
+autoscaler started the workers with full 212-model catalogues. All three tests
+completed with actual final text `RUNTIME_OK`, no error events or failure reasons.
+Frontend run: `01a19a59-002e-7dc9-b68e-0738daa84064`; DevOps run:
+`01a19a59-0033-7cad-b8e1-1a543bd9266c`. No manual scaling or restart was used.
+
+Security finding: `multica agent list --output json` returned unredacted MCP
+credentials. Never display raw agent responses; select safe fields in-process.
+Affected credential owners must rotate them; agents must not rotate credentials
+or copy their values into incident documents.
+
+### Prevention rollout and remaining router risk
+
+The fallback registers configured main, subagent and tier models even when the
+catalogue endpoint is unreachable. It does not add unconfigured model aliases or
+provide inference while the router itself is unavailable. A successful probe
+remains authoritative; unknown IDs must not silently route to a different model.
+
+Release through the existing Build workflow after review/merge. Select the new
+immutable runtime image in the AI infrastructure, review its saved GitHub Actions
+plan and obtain exact-plan approval before rollout. Do not deploy by restarting
+workers onto the old image. Re-run the three bounded Multica smoke tests after
+rollout; require final response text and successful completion.
+
+Live ECS inspection confirmed two stopped router tasks with Headroom
+`OutOfMemoryError: container killed due to memory usage`, exit 137. The current
+Headroom hard limit is 1024 MiB inside a 3072 MiB task. Service-level memory
+utilization is not container headroom: spare task memory cannot bypass that hard
+limit. Increasing task memory alone is not a fix. Collect private per-container
+RSS/peak and Headroom component statistics before choosing a concurrency limit,
+cache change or memory increase. Preserve the router SQLite single-writer
+constraint; do not add replicas or overlapping deployment to hide the outage.
+
+Regression: `bash scripts/test-opencode-catalogue.sh` (also in `make lint`).
+
 ## The container exits immediately
 
 Run the entrypoint with a dry run to see the configuration error:

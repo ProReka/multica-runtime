@@ -36,6 +36,7 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 		echo "shellcheck not installed; skipping (CI runs it)"; \
 	fi
 	@bash scripts/test-worktrees.sh
+	@bash scripts/test-opencode-catalogue.sh
 	@$(PYTHON) scripts/test-ci-plan.py
 	@$(PYTHON) scripts/test-ci-release.py
 	@$(PYTHON) scripts/test-checkout-recovery.py

@@ -51,6 +51,7 @@ jobs:
           python3 scripts/test-ci-plan.py
           python3 scripts/test-ci-release.py
           python3 scripts/test-checkout-recovery.py
+          python3 scripts/test-check-latest-versions.py
 
       - name: Autoscaler unit tests
         run: |

@@ -64,7 +64,7 @@
         }
       ],
       "healthCheck": {
-        "command": ["CMD-SHELL", "pgrep -f 'multica daemon' >/dev/null || exit 1"],
+        "command": ["CMD-SHELL", "pgrep -f 'multica.*daemon' >/dev/null || exit 1"],
         "interval": 30,
         "timeout": 5,
         "retries": 3,

@@ -40,6 +40,7 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 	@$(PYTHON) scripts/test-ci-release.py
 	@$(PYTHON) scripts/test-checkout-recovery.py
 	@$(PYTHON) scripts/test-check-runtime.py
+	@$(PYTHON) scripts/test-check-latest-versions.py
 	@printf 'Shell scripts OK.\n'
 
 build: ## Build images locally (VARIANTS=base,node,...)

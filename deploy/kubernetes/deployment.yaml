@@ -72,7 +72,7 @@ spec:
               drop: ["ALL"]
           livenessProbe:
             exec:
-              command: ["/bin/sh", "-c", "pgrep -f 'multica daemon' >/dev/null"]
+              command: ["/bin/sh", "-c", "pgrep -f 'multica.*daemon' >/dev/null"]
             initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 5

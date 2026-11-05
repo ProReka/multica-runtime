@@ -28,24 +28,24 @@ ENV MULTICA_IMAGE_VARIANT=php \
 
 USER root
 
-# --- PHP + extensions --------------------------------------------------------
+ARG PHP_DEBIAN_VERSION=8.4.27-1
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        php8.4-cli \
-        php8.4-common \
-        php8.4-curl \
-        php8.4-mbstring \
-        php8.4-xml \
-        php8.4-zip \
-        php8.4-bcmath \
-        php8.4-gd \
-        php8.4-intl \
-        php8.4-mysql \
-        php8.4-pgsql \
-        php8.4-redis \
-        php8.4-sqlite3 \
-        php8.4-opcache \
+        php8.4-cli=${PHP_DEBIAN_VERSION} \
+        php8.4-common=${PHP_DEBIAN_VERSION} \
+        php8.4-curl=${PHP_DEBIAN_VERSION} \
+        php8.4-mbstring=${PHP_DEBIAN_VERSION} \
+        php8.4-xml=${PHP_DEBIAN_VERSION} \
+        php8.4-zip=${PHP_DEBIAN_VERSION} \
+        php8.4-bcmath=${PHP_DEBIAN_VERSION} \
+        php8.4-gd=${PHP_DEBIAN_VERSION} \
+        php8.4-intl=${PHP_DEBIAN_VERSION} \
+        php8.4-mysql=${PHP_DEBIAN_VERSION} \
+        php8.4-pgsql=${PHP_DEBIAN_VERSION} \
+        php8.4-redis=${PHP_DEBIAN_VERSION} \
+        php8.4-sqlite3=${PHP_DEBIAN_VERSION} \
+        php8.4-opcache=${PHP_DEBIAN_VERSION} \
         unzip; \
     rm -rf /var/lib/apt/lists/*; \
     php --version | head -n1

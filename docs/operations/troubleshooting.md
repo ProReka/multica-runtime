@@ -7,6 +7,30 @@ and CLI versions — and never a secret.
 docker compose logs --tail=50 runtime
 ```
 
+## OpenCode reports `Unexpected server error`
+
+A heartbeat is not evidence that an agent can execute. Check the model catalogue
+inside the affected worker as its runtime user (`opencode models <provider>`),
+not only the router's `/v1/models` endpoint. Never dump provider configuration:
+it contains credentials.
+
+One possible cause is a failed startup model-catalogue probe. A router can recover
+while an existing worker still has an incomplete local catalogue. Compare the
+requested model with the models available inside that worker; this generic error
+alone does not establish the cause.
+
+When the probe fails, the fallback includes the configured main, subagent and tier
+models. No provider-specific model names are hardcoded. Successful probes remain
+authoritative; unconfigured aliases are not added automatically. The fallback
+does not provide inference while the upstream service itself is unavailable.
+
+Deploy an image containing the fix using your platform's deployment process.
+Preserve credentials, unrelated settings and in-flight work when replacing or
+reconfiguring existing workers. Verify an actual agent response and successful
+run completion afterward, not merely a heartbeat or container health check.
+
+Regression: `bash scripts/test-opencode-catalogue.sh` (also in `make lint`).
+
 ## The container exits immediately
 
 Run the entrypoint with a dry run to see the configuration error:

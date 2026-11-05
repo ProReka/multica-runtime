@@ -128,9 +128,14 @@ mr_configure_opencode() {
         models_json="$(printf '%s' "$catalogue" | jq 'map({(.): {name: .}}) | add')"
         log "Router catalogue OK at ${origin}/v1/models (${count} models)"
     else
-        if [ -n "${MR_MODEL:-}" ]; then
-            models_json="$(jq -n --arg m "$MR_MODEL" '{($m): {name: $m}}')"
-        fi
+        # A router outage must not hide configured models after it recovers.
+        models_json="$(jq -n \
+            --arg main "${MULTICA_OPENCODE_MODEL:-${MR_MODEL:-}}" \
+            --arg sub "${MULTICA_OPENCODE_SUBAGENT_MODEL:-${MR_SUBAGENT:-}}" \
+            --arg large "${MR_LARGE:-}" --arg medium "${MR_MEDIUM:-}" \
+            --arg small "${MR_SMALL:-}" \
+            '[$main, $sub, $large, $medium, $small]
+             | map(select(length > 0) | {(.): {name: .}}) | add // {}')"
         if [ "$probe_enabled" = "0" ]; then
             log "catalogue unknown (AI_MODELS_PROBE=0); using protocol=${protocol}"
         elif [ "$MR_PROTOCOL" = "auto" ]; then

@@ -87,6 +87,17 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         libatomic1 \
+        bind9-dnsutils \
+        iputils-ping \
+        netcat-openbsd \
+        iproute2 \
+        traceroute \
+        socat \
+        whois \
+        rsync \
+        zstd \
+        lsof \
+        strace \
         curl \
         wget \
         gnupg \
@@ -196,6 +207,6 @@ WORKDIR /home/runner
 
 # The daemon runs in the foreground; pgrep is a cheap liveness check.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD ["pgrep", "-f", "multica daemon"]
+    CMD ["pgrep", "-f", "multica.*daemon"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/multica-entrypoint"]

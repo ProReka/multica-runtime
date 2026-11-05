@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add standard networking and diagnostic CLI utilities to the base image:
+  `bind9-dnsutils` (`dig`, `nslookup`), `iputils-ping` (`ping`), `netcat-openbsd`
+  (`nc`), `iproute2` (`ip`, `ss`), `traceroute`, `socat`, `whois`, `rsync`,
+  `zstd`, `lsof`, and `strace`.
+- Automated daily tool release watcher: `.github/workflows/version-watcher.yml`
+  and `scripts/check-latest-versions.py` checking GitHub Releases, NPM, and PyPI.
 - Read-only `scripts/check-runtime.py` pickup diagnosis: workspace-specific
   binding, heartbeat, paginated task history, recent activity and agent-level
   saturation. Flag empty running tasks, recent tool timeouts and execution errors
@@ -22,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgrade Multica CLI to 0.8.0 and Claude Code to 2.1.318.
 - Update Multica CLI to 0.7.2. Automatically recover `repo checkout` failures
   caused by orphaned target directories: preserve files under
   `/workspaces/.checkout-recovery`, prune stale registrations, and retry once.
@@ -46,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Update daemon healthcheck pattern from `multica daemon` to `multica.*daemon`
+  so `pgrep` reliably detects wrapped `/usr/local/lib/multica-cli` daemon processes.
 - Install `libatomic1` in both base-image stages for Node.js 26's shared-library
   dependency.
 - Prune expired stale Git worktree registrations in cached repositories before

@@ -110,7 +110,7 @@ is pinned exactly (24.x LTS) and not tied to the distro release.
 The image declares:
 
 ```dockerfile
-HEALTHCHECK CMD pgrep -f "multica daemon" >/dev/null || exit 1
+HEALTHCHECK CMD pgrep -f "multica.*daemon" >/dev/null || exit 1
 ```
 
 It is intentionally shallow: it answers “is the daemon process alive?”, not “is

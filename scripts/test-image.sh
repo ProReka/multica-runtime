@@ -31,7 +31,7 @@ fail() { printf '  FAIL  %s\n' "$*" >&2; failures=$((failures + 1)); }
 
 commands_for() {
     case "$1" in
-        base)       printf '%s\n' claude opencode multica gh node npm python3 git jq chromium ;;
+        base)       printf '%s\n' claude opencode multica gh node npm python3 git jq chromium dig ;;
         node)       printf '%s\n' pnpm yarn tsc playwright vitest eslint prettier serve ;;
         python)     printf '%s\n' uv poetry ruff mypy pytest ;;
         php)        printf '%s\n' php composer laravel mariadbd psql redis-server ;;

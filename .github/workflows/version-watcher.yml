@@ -1,0 +1,53 @@
+name: Version Watcher
+
+on:
+  schedule:
+    # Run daily at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-versions:
+    name: Check latest tool releases
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check upstream tool releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/check-latest-versions.py --update
+
+      - name: Verify and create PR if updated
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet versions.env; then
+            echo "All tools in versions.env are up to date."
+            exit 0
+          fi
+
+          echo "Updates found in versions.env:"
+          git diff versions.env
+
+          # Ensure updated versions pass repo linting
+          make lint
+
+          branch="automation/bump-versions-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add versions.env
+          git commit -m "chore(deps): bump tool versions in versions.env"
+          git push -u origin "$branch"
+
+          gh pr create \
+            --title "chore(deps): daily tool version updates" \
+            --body "Automated daily version check detected upstream tool updates in \`versions.env\`." \
+            --head "$branch" \
+            --base main

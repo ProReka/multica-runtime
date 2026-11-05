@@ -27,7 +27,7 @@ services:
     volumes:
       - workspaces:/workspaces
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'multica daemon' >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "pgrep -f 'multica.*daemon' >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -28,7 +28,7 @@ ENV MULTICA_IMAGE_VARIANT=php \
 
 USER root
 
-ARG PHP_DEBIAN_VERSION=8.4.27-1
+ARG PHP_DEBIAN_VERSION
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \

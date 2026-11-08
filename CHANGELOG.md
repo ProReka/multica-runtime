@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Codex CLI (`@openai/codex`, pinned `CODEX_VERSION`) in the base image. The
+  entrypoint writes `$CODEX_HOME/config.toml` (default `/workspaces/.codex`)
+  with a Responses API provider built from `AI_*`, overridable with
+  `CODEX_BASE_URL`, `CODEX_API_KEY` and `CODEX_MODEL`. The daemon registers a
+  third `codex` runtime; `scripts/test-image.sh` runs a headless `codex exec`
+  against a local fake endpoint.
 - Add standard networking and diagnostic CLI utilities to the base image:
   `bind9-dnsutils` (`dig`, `nslookup`), `iputils-ping` (`ping`), `netcat-openbsd`
   (`nc`), `iproute2` (`ip`, `ss`), `traceroute`, `socat`, `whois`, `rsync`,

@@ -51,18 +51,19 @@ tini
          3. derive model tiers
          4. configure Claude Code       (CLAUDE_CONFIG_DIR on /workspaces)
          5. configure OpenCode          (probe /v1/models, write 0600 config)
-         6. run variant hooks           (design: register Penpot MCP)
-         7. configure git / gh          (optional)
-         8. print banner                (no secrets)
-         9. multica login --token
-        10. exec multica daemon start --foreground
+         6. configure Codex             (CODEX_HOME on /workspaces, config.toml)
+         7. run variant hooks           (design: register Penpot MCP)
+         8. configure git / gh          (optional)
+         9. print banner                (no secrets)
+        10. multica login --token
+        11. exec multica daemon start --foreground
 ```
 
 The daemon is the foreground process. `tini` forwards `SIGTERM`; the daemon
 deregisters its runtimes and exits. `stop_grace_period: 90s` gives a running task
 time to finish.
 
-If you set `MULTICA_DRY_RUN=1`, execution stops after step 8.
+If you set `MULTICA_DRY_RUN=1`, execution stops after step 9.
 
 ### Why the entrypoint is split
 
@@ -72,6 +73,7 @@ If you set `MULTICA_DRY_RUN=1`, execution stops after step 8.
 | `lib/config.sh` | `AI_*` resolution, credential style, model tiers |
 | `lib/claude.sh` | `CLAUDE_CONFIG_DIR`, update/traffic policy |
 | `lib/opencode.sh` | catalogue probe, config generation, model refs |
+| `lib/codex.sh` | `CODEX_HOME`, Responses provider config |
 | `lib/git.sh` | git identity, `gh auth setup-git` |
 | `lib/banner.sh` | secret-free startup summary |
 | `entrypoint.sh` | ordering, login, daemon |

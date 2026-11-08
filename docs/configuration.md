@@ -151,6 +151,21 @@ The entrypoint writes the config at container start because OpenCode does not re
 `ANTHROPIC_BASE_URL`. The file contains your API key and is created with mode
 `0600`.
 
+## Codex CLI
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CODEX_HOME` | `/workspaces/.codex` | Session data and config |
+| `CODEX_BASE_URL` | `<router origin>/v1` | Responses endpoint override |
+| `CODEX_API_KEY` | `AI_API_KEY` | Credential override |
+| `CODEX_MODEL` | `AI_MODEL` | Model override |
+| `MULTICA_CODEX_MODEL` | — | Passed through to the daemon |
+| `MULTICA_CODEX_ARGS` | — | Extra CLI arguments |
+
+The entrypoint writes `$CODEX_HOME/config.toml` at container start to configure
+a custom provider pointed at the router's Responses endpoint (`/v1/responses`).
+`check_for_update_on_startup = false` is set to keep image-pinned versions.
+
 ## Git hosting (optional)
 
 | Variable | Meaning |

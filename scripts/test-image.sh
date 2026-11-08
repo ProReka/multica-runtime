@@ -31,7 +31,7 @@ fail() { printf '  FAIL  %s\n' "$*" >&2; failures=$((failures + 1)); }
 
 commands_for() {
     case "$1" in
-        base)       printf '%s\n' claude opencode multica gh node npm python3 git jq chromium dig ;;
+        base)       printf '%s\n' claude opencode codex multica gh node npm python3 git jq chromium dig ;;
         node)       printf '%s\n' pnpm yarn tsc playwright vitest eslint prettier serve ;;
         python)     printf '%s\n' uv poetry ruff mypy pytest ;;
         php)        printf '%s\n' php composer laravel mariadbd psql redis-server ;;
@@ -97,6 +97,57 @@ test_entrypoint() {
     fi
 }
 
+# Headless Codex turn against a local fake Responses endpoint: proves the
+# generated config.toml, provider wiring and `codex exec` work without network.
+CODEX_SMOKE='
+import json, sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+class H(BaseHTTPRequestHandler):
+    def log_message(self, *a): pass
+    def do_POST(self):
+        self.rfile.read(int(self.headers.get("Content-Length") or 0))
+        ok = self.path == "/v1/responses" and self.headers.get("Authorization") == "Bearer smoke-test-key"
+        item = {"type": "message", "id": "m1", "role": "assistant", "status": "completed",
+                "content": [{"type": "output_text", "text": "CODEX_SMOKE_OK" if ok else "BAD_REQUEST", "annotations": []}]}
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.end_headers()
+        for data in ({"type": "response.created", "response": {"id": "r1"}},
+                     {"type": "response.output_item.done", "output_index": 0, "item": item},
+                     {"type": "response.completed", "response": {"id": "r1"}}):
+            self.wfile.write(("event: %s\ndata: %s\n\n" % (data["type"], json.dumps(data))).encode())
+HTTPServer(("127.0.0.1", 18080), H).serve_forever()
+'
+
+test_codex() {
+    local variant="$1" image="$2" out
+    out="$(docker run --rm --entrypoint bash \
+        -e MULTICA_TOKEN=smoke-test-token \
+        -e AI_BASE_URL=http://127.0.0.1:18080/v1 \
+        -e AI_API_KEY=smoke-test-key \
+        -e AI_MODEL=smoke-model \
+        -e AI_MODELS_PROBE=0 \
+        -e MULTICA_DRY_RUN=1 \
+        -e CODEX_SMOKE="$CODEX_SMOKE" \
+        "$image" -c '
+            set -e
+            python3 -c "$CODEX_SMOKE" & sleep 1
+            /usr/local/bin/multica-entrypoint
+            cd /tmp
+            CODEX_HOME=/workspaces/.codex CODEX_API_KEY=smoke-test-key \
+                timeout 60 codex exec --skip-git-repo-check --ephemeral "reply with ok" </dev/null' 2>&1)" || {
+            fail "$variant codex exec"
+            printf '%s\n' "$out" | tail -n 20 | sed 's/^/        /' >&2
+            return
+        }
+    if grep -q "CODEX_SMOKE_OK" <<<"$out"; then
+        pass "$variant codex exec (headless)"
+    else
+        fail "$variant codex exec (unexpected output)"
+        printf '%s\n' "$out" | tail -n 20 | sed 's/^/        /' >&2
+    fi
+}
+
 # Variants whose variant-entrypoint has side effects better exercised by their
 # own test (embedded databases, Xvfb/MCP). They still get the binary check.
 skip_entrypoint() {
@@ -117,6 +168,9 @@ for variant in "${VARIANTS[@]}"; do
         printf '  skip  %s entrypoint dry run\n' "$variant"
     else
         test_entrypoint "$variant" "$image"
+    fi
+    if [ "$variant" = base ]; then
+        test_codex "$variant" "$image"
     fi
 done
 

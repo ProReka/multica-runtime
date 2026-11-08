@@ -37,6 +37,7 @@ test-shell: ## Syntax-check and (when installed) shellcheck every shell script
 	fi
 	@bash scripts/test-worktrees.sh
 	@bash scripts/test-opencode-catalogue.sh
+	@bash scripts/test-codex-config.sh
 	@$(PYTHON) scripts/test-ci-plan.py
 	@$(PYTHON) scripts/test-ci-release.py
 	@$(PYTHON) scripts/test-checkout-recovery.py

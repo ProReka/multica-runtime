@@ -24,6 +24,7 @@ SOURCES = {
     # NPM packages
     "CLAUDE_CODE_VERSION": ("npm", "@anthropic-ai/claude-code"),
     "OPENCODE_VERSION": ("npm", "opencode-ai"),
+    "CODEX_VERSION": ("npm", "@openai/codex"),
     "PNPM_VERSION": ("npm", "pnpm"),
     "YARN_VERSION": ("npm", "yarn"),
     "TYPESCRIPT_VERSION": ("npm", "typescript"),

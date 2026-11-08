@@ -1,16 +1,16 @@
 # Agent CLIs
 
-The image contains two agent CLIs, both installed and pinned at build time:
+The image contains three agent CLIs, all installed and pinned at build time:
 
 | CLI | Package | Command |
 |---|---|---|
 | Claude Code | `@anthropic-ai/claude-code` | `claude` |
 | OpenCode V1 | `opencode-ai` | `opencode` |
+| Codex CLI | `@openai/codex` | `codex` |
 
 More CLIs are planned, but none are installed yet:
 
-- **Wave 1:** Codex CLI (`codex`), Qwen Code (`qwen`), Grok Build (`grok`),
-  DeepSeek Harness (`dsh`).
+- **Wave 1:** Qwen Code (`qwen`), Grok Build (`grok`), DeepSeek Harness (`dsh`).
 - **Wave 2:** Pi (`pi`), Oh-My-Pi (`omp`), Hermes Agent (`hermes`), OpenClaw
   (`openclaw`).
 
@@ -21,8 +21,8 @@ the honest blockers.
 ## One runtime per CLI
 
 The Multica daemon detects every supported agent CLI on `PATH` and registers one
-runtime per CLI. A single container therefore appears in the dashboard as two
-runtimes (for example `Multica Runtime (claude)` and `Multica Runtime (opencode)`),
+runtime per CLI. A single container therefore appears in the dashboard as three
+runtimes (for example `Multica Runtime (claude)`, `(opencode)` and `(codex)`),
 sharing:
 
 - the same `MULTICA_DAEMON_ID` prefix,
@@ -30,10 +30,10 @@ sharing:
 - the same `/workspaces` volume.
 
 Bind an agent to whichever CLI you want it to use. They are not interchangeable
-in behaviour: Claude Code has a different tool set and prompt style than OpenCode.
-Running both lets you compare, or pin a particular agent to a particular runtime.
+in behaviour: each has its own tool set and prompt style. Running several lets you
+compare, or pin a particular agent to a particular runtime.
 
-## Same endpoint, two configurations
+## Same endpoint, three configurations
 
 Claude Code natively reads `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`/`API_KEY`
 and `ANTHROPIC_MODEL`. OpenCode does not read those, so the entrypoint writes an
@@ -48,7 +48,39 @@ That config:
 - sets the main and subagent model;
 - is written with mode `0600` because it contains the key.
 
-You configure the endpoint once. Both CLIs follow.
+You configure the endpoint once. Every CLI follows.
+
+## Codex CLI
+
+Codex reads neither variable family, so the entrypoint writes
+`$CODEX_HOME/config.toml` (default `/workspaces/.codex`) at start:
+
+- a custom provider `AI_PROVIDER_ID` with `base_url = <router origin>/v1`;
+- `wire_api = "responses"` — Codex only speaks the OpenAI **Responses API**
+  (upstream removed `wire_api = "chat"`), so the router must serve
+  `POST /v1/responses`;
+- `env_key = "CODEX_API_KEY"`, so the key stays in the environment, not the file;
+- `model = AI_MODEL` and `check_for_update_on_startup = false`.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CODEX_HOME` | `/workspaces/.codex` | Config + per-issue session stores |
+| `CODEX_BASE_URL` | `<AI_BASE_URL origin>/v1` | Responses endpoint for Codex only |
+| `CODEX_API_KEY` | `AI_API_KEY` | Key for Codex only |
+| `CODEX_MODEL` | `AI_MODEL` | Model for Codex only |
+| `MULTICA_CODEX_MODEL` / `MULTICA_CODEX_ARGS` | — | Read by the daemon |
+
+Headless execution belongs to the daemon: for each task it copies this config
+into a per-task `CODEX_HOME`, launches `codex app-server --listen stdio://`, and
+keeps per-issue session stores under `$CODEX_HOME/multica-sessions` so resume
+survives restarts. No wrapper is needed. For a manual check:
+
+```bash
+codex exec --skip-git-repo-check "reply with ok"
+```
+
+An Anthropic-only endpoint does not work for Codex. Point `CODEX_BASE_URL` at a
+router that serves the Responses API, or bind agents to `claude`/`opencode`.
 
 ## Model slots
 
@@ -99,7 +131,8 @@ Agent CLIs are pinned in [`versions.env`](https://github.com/ProReka/multica-run
 and installed with `npm install -g <pkg>@<exact>`. They do not auto-update:
 
 - `DISABLE_AUTOUPDATER=1` for Claude Code;
-- `autoupdate: false` in the OpenCode config.
+- `autoupdate: false` in the OpenCode config;
+- `check_for_update_on_startup = false` in the Codex config.
 
 A new CLI version is a new image, reviewed and tested in CI. That is deliberate:
 a runtime that changes its own behaviour mid-task is not reproducible.

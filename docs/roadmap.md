@@ -32,32 +32,12 @@ session history is the work.
 |---|---|---|
 | Claude Code | `claude` | Anthropic-compatible endpoint, four model slots |
 | OpenCode | `opencode` | Anthropic- or OpenAI-compatible, generated config |
+| Codex CLI | `codex` | Responses API endpoint, generated config, `CODEX_HOME` on volume |
 
-## Wave 1 — the next four harnesses
+## Wave 1 — the next three harnesses
 
 These are the most likely next additions. They have headless modes, active
 upstream projects, and a plausible path to the Multica daemon.
-
-### Codex CLI
-
-OpenAI's Codex CLI is still the obvious missing third runtime. It is a mature
-headless agent (`codex exec`), but its configuration and auth are its own:
-`~/.codex/config.toml`, OpenAI or custom model providers, and a protocol that is
-not simply "Anthropic with a different key".
-
-What it needs:
-
-- a Codex adapter that maps `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL` into
-  Codex's provider config;
-- `CODEX_*` overrides for people who want a different endpoint than Claude
-  Code and OpenCode;
-- a decision about the wire protocol: Responses API, OpenAI-compatible chat, or
-  a router that supports both;
-- a headless smoke test that runs a task, not just `codex --version`.
-
-The image question is size. Codex is not huge, but shipping three CLIs in every
-variant is wasteful. The likely shape is `:base` with Claude Code + OpenCode,
-and a `:base-codex` or `:agents` tag until the shared adapter layer is proven.
 
 ### Qwen Code
 

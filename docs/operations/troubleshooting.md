@@ -174,6 +174,33 @@ AI_MODEL=multica/general
 
 The entrypoint also warns when a pinned model is not in the probed catalogue.
 
+## `git commit` fails: `Author identity unknown`
+
+Git refuses to commit without `user.name` and `user.email`. On each
+`multica repo checkout`, the daemon copies the global/system identity into the
+worktree's `multica-identity.config` and masks anything missing with empty
+values, so an unset global identity becomes `fatal: empty ident name`.
+
+The entrypoint sets the global identity from `GIT_AUTHOR_NAME` /
+`GIT_AUTHOR_EMAIL`, or `Multica Agent <agent@multica.invalid>` when both are
+unset. Set the variables to attribute commits to a real account:
+
+```dotenv
+GIT_AUTHOR_NAME=ProReka Bot
+GIT_AUTHOR_EMAIL=<id>+<login>@users.noreply.github.com
+```
+
+Check inside a task checkout:
+
+```bash
+git config --global --get user.email
+git var GIT_AUTHOR_IDENT
+```
+
+A checkout created before the fix keeps its empty identity until the next
+`multica repo checkout` refreshes it. To commit now, override per command:
+`git -c user.name="ProReka Bot" -c user.email=<email> commit ...`.
+
 ## Sessions disappear after restart
 
 - The volume is not mounted at `/workspaces`.

@@ -23,11 +23,16 @@ mr_configure_git() {
     git config --global init.defaultBranch main 2>/dev/null || true
     git config --global --add safe.directory "${MULTICA_WORKSPACES_ROOT:-/workspaces}" 2>/dev/null || true
 
+    # Without an identity every agent commit fails with "Author identity unknown".
     if [ -n "${GIT_AUTHOR_NAME:-}" ]; then
         git config --global user.name "$GIT_AUTHOR_NAME" 2>/dev/null || true
+    elif [ -z "$(git config --global user.name 2>/dev/null)" ]; then
+        git config --global user.name "Multica Agent" 2>/dev/null || true
     fi
     if [ -n "${GIT_AUTHOR_EMAIL:-}" ]; then
         git config --global user.email "$GIT_AUTHOR_EMAIL" 2>/dev/null || true
+    elif [ -z "$(git config --global user.email 2>/dev/null)" ]; then
+        git config --global user.email "agent@multica.invalid" 2>/dev/null || true
     fi
 
     if [ -n "$token" ]; then

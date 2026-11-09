@@ -157,11 +157,15 @@ The entrypoint writes the config at container start because OpenCode does not re
 |---|---|
 | `GH_TOKEN` | GitHub token for `gh` and HTTPS git |
 | `GITHUB_TOKEN` | Fallback for `GH_TOKEN` |
-| `GIT_AUTHOR_NAME` | Commit identity |
-| `GIT_AUTHOR_EMAIL` | Commit email |
+| `GIT_AUTHOR_NAME` | Commit identity (default `Multica Agent`) |
+| `GIT_AUTHOR_EMAIL` | Commit email (default `agent@multica.invalid`) |
 
 With a token, `gh auth setup-git` is run so `git push` over HTTPS works without a
 credential prompt.
+
+The identity is written to the global Git config at start; Multica copies it into
+every task checkout. Without one, commits fail with `Author identity unknown`
+(see [Troubleshooting](operations/troubleshooting.md#git-commit-fails-author-identity-unknown)).
 
 ## PHP image
 

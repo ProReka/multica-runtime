@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Set a fallback global Git identity at start when `GIT_AUTHOR_NAME` /
+  `GIT_AUTHOR_EMAIL` are unset, so agent commits no longer fail with
+  `Author identity unknown`.
 - Preserve configured OpenCode main, subagent and tier models when the router
   catalogue probe fails; recovery no longer leaves only the default model usable.
 

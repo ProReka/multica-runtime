@@ -30,3 +30,12 @@ mr_prune_worktrees
 [ "$(cat "$tmp/stale/task-data")" = keep ]
 git -C "$tmp/valid" rev-parse --is-inside-work-tree | grep -qx true
 printf 'Worktree pruning OK.\n'
+
+mkdir "$tmp/home"
+HOME="$tmp/home" GIT_CONFIG_NOSYSTEM=1 GH_TOKEN='' GITHUB_TOKEN='' GIT_AUTHOR_NAME='' GIT_AUTHOR_EMAIL='' mr_configure_git
+[ "$(HOME="$tmp/home" git config --global user.email)" = agent@multica.invalid ]
+HOME="$tmp/home" GH_TOKEN='' GITHUB_TOKEN='' GIT_AUTHOR_NAME=Dev GIT_AUTHOR_EMAIL=dev@example.invalid mr_configure_git
+[ "$(HOME="$tmp/home" git config --global user.name)" = Dev ]
+HOME="$tmp/home" GH_TOKEN='' GITHUB_TOKEN='' GIT_AUTHOR_NAME='' GIT_AUTHOR_EMAIL='' mr_configure_git
+[ "$(HOME="$tmp/home" git config --global user.email)" = dev@example.invalid ]
+printf 'Git identity fallback OK.\n'

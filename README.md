@@ -8,7 +8,7 @@
 
 ![Multica Runtime — one container, any stack](docs/assets/cover.png)
 
-**Docker images that turn Claude Code and OpenCode into Multica agents.**
+**Docker images that turn Claude Code, OpenCode and Codex into Multica agents.**
 
 One container, four environment variables, and you have an agent runtime that
 picks up tasks, works in a real repository, and keeps its session history across
@@ -20,7 +20,7 @@ docker compose up -d
 ```
 
 No CLI installation, no Node/PHP/Flutter toolchain on your laptop, no per-agent
-configuration. Both agent CLIs are wired to the same endpoint from the same three
+configuration. Every agent CLI is wired to the same endpoint from the same three
 values.
 
 ---
@@ -34,7 +34,7 @@ databases, a Flutter task needs the Android SDK, a QA task needs Playwright and 
 
 These images put the whole stack in a container that:
 
-- ships **Claude Code + OpenCode**, both pointed at your AI router;
+- ships **Claude Code + OpenCode + Codex**, all pointed at your AI router;
 - registers with Multica automatically and runs the daemon in the foreground;
 - runs as a **non-root** user (uid 1000) on Debian 13;
 - keeps sessions on a volume, so a restart does not lose context;
@@ -95,13 +95,13 @@ tini
  └─ variant entrypoint                  php: databases · design: Xvfb + MCP
      └─ multica-entrypoint
          1. resolve AI_* → ANTHROPIC_*
-         2. configure Claude Code + OpenCode
+         2. configure Claude Code + OpenCode + Codex
          3. log in to Multica
          4. exec multica daemon start --foreground
 ```
 
-The daemon detects both CLIs and registers one runtime per CLI. Sessions live on
-`/workspaces` (`.claude`, `.opencode/data`). See [Architecture](docs/architecture.md).
+The daemon detects every CLI and registers one runtime per CLI. Sessions live on
+`/workspaces` (`.claude`, `.opencode/data`, `.codex`). See [Architecture](docs/architecture.md).
 
 ## Deployment
 
@@ -138,7 +138,9 @@ The same content is published at **<https://proreka.github.io/multica-runtime/>*
 - A Multica token
 - An Anthropic-compatible endpoint. OpenCode can also talk to an
   OpenAI-compatible router; Claude Code still needs an Anthropic-compatible
-  surface. `AI_PROTOCOL=auto` picks the right one for OpenCode.
+  surface. `AI_PROTOCOL=auto` picks the right one for OpenCode. Codex needs an
+  OpenAI Responses API (`/v1/responses`); set `CODEX_BASE_URL` if `AI_BASE_URL`
+  does not serve it.
 
 No GPU, no privileged mode, no Docker socket — except for the optional Swarm
 autoscaler, which needs it to call `docker service scale`.
@@ -160,7 +162,7 @@ per [SECURITY.md](SECURITY.md).
 
 ## Status
 
-Claude Code and OpenCode are supported now. Codex CLI, Qwen Code, Grok Build,
+Claude Code, OpenCode and Codex CLI are supported now. Qwen Code, Grok Build,
 DeepSeek Harness, Pi, Oh-My-Pi, Hermes Agent, OpenClaw and more are on the
 [roadmap](docs/roadmap.md).
 

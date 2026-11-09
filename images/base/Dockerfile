@@ -4,9 +4,9 @@
 # =============================================================================
 # Everything an agent needs to pick up a task and work:
 #   Debian 13 + Node.js LTS + git/gh + Chromium + Python + build tools
-#   Claude Code + OpenCode + Multica CLI
+#   Claude Code + OpenCode + Codex CLI + Multica CLI
 #
-# The Multica daemon auto-detects both agent CLIs on PATH and registers one
+# The Multica daemon auto-detects every agent CLI on PATH and registers one
 # runtime per CLI. Sessions are parked on /workspaces so they survive restarts.
 #
 # Tool versions come from versions.env at the repo root. Every ARG below has NO
@@ -55,11 +55,12 @@ ARG GH_CLI_VERSION
 ARG MULTICA_CLI_VERSION
 ARG CLAUDE_CODE_VERSION
 ARG OPENCODE_VERSION
+ARG CODEX_VERSION
 ARG TARGETARCH
 ARG IMAGE_VERSION=dev
 
 LABEL org.opencontainers.image.title="Multica Runtime (base)" \
-      org.opencontainers.image.description="Run Multica agents in Docker: Claude Code + OpenCode, batteries included." \
+      org.opencontainers.image.description="Run Multica agents in Docker: Claude Code + OpenCode + Codex, batteries included." \
       org.opencontainers.image.source="https://github.com/ProReka/multica-runtime" \
       org.opencontainers.image.url="https://github.com/ProReka/multica-runtime" \
       org.opencontainers.image.documentation="https://github.com/ProReka/multica-runtime/tree/main/docs" \
@@ -143,10 +144,12 @@ COPY --from=node /usr/local /usr/local
 RUN set -eux; \
     npm install -g --no-fund --no-audit \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
-        "opencode-ai@${OPENCODE_VERSION}"; \
+        "opencode-ai@${OPENCODE_VERSION}" \
+        "@openai/codex@${CODEX_VERSION}"; \
     npm cache clean --force; \
     claude --version; \
-    opencode --version
+    opencode --version; \
+    codex --version
 
 # --- GitHub CLI --------------------------------------------------------------
 RUN set -eux; \

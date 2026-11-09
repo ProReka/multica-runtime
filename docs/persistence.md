@@ -9,6 +9,7 @@ restart, upgrade, or scale-to-zero lives on one volume.
 |---|---|---|
 | `/workspaces/.claude` | Claude Code | Transcripts and config (`CLAUDE_CONFIG_DIR`) |
 | `/workspaces/.opencode/data` | OpenCode | Session data (`XDG_DATA_HOME`) |
+| `/workspaces/.codex` | Codex CLI | Config and per-issue session stores (`CODEX_HOME`) |
 | `/workspaces/.penpot-browser` | design image | Chromium profile with the Penpot session |
 | `/workspaces/.penpot` | design image | MCP/plugin/Xvfb logs |
 | `/workspaces/<task-id>` | Multica daemon | Task checkouts and working files |

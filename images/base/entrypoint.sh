@@ -3,13 +3,13 @@
 #
 #   1. Resolve the small public config surface into the variables the agent CLIs
 #      and the Multica daemon expect.
-#   2. Point Claude Code and OpenCode at the same AI router.
+#   2. Point Claude Code, OpenCode and Codex at the same AI router.
 #   3. Park session state on the /workspaces volume.
 #   4. Optionally configure GitHub access.
 #   5. Log in to Multica headlessly and run the daemon in the foreground.
 #
-# The daemon detects `claude` and `opencode` on PATH and registers one runtime
-# per CLI. Keep the container in the foreground: tini forwards SIGTERM and the
+# The daemon detects `claude`, `opencode` and `codex` on PATH and registers one
+# runtime per CLI. Keep the container in the foreground: tini forwards SIGTERM and the
 # daemon deregisters its runtimes before exiting.
 #
 # This file is deliberately readable. Helpers live in lib/ so each concern can
@@ -27,6 +27,8 @@ MR_LIB_DIR="${MR_LIB_DIR:-/usr/local/lib/multica}"
 . "${MR_LIB_DIR}/claude.sh"
 # shellcheck source=lib/opencode.sh
 . "${MR_LIB_DIR}/opencode.sh"
+# shellcheck source=lib/codex.sh
+. "${MR_LIB_DIR}/codex.sh"
 # shellcheck source=lib/git.sh
 . "${MR_LIB_DIR}/git.sh"
 # shellcheck source=lib/banner.sh
@@ -89,6 +91,7 @@ main() {
 
     mr_configure_claude
     mr_configure_opencode
+    mr_configure_codex
     mr_run_hooks
     mr_configure_git
     mr_print_banner

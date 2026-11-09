@@ -2,7 +2,7 @@
 
 ![Multica Runtime — one container, any stack](assets/cover.png)
 
-**Docker images that turn Claude Code and OpenCode into Multica agents.**
+**Docker images that turn Claude Code, OpenCode and Codex into Multica agents.**
 
 One container, four environment variables, and you have an agent runtime that
 picks up tasks, works in a real repository, and keeps its session history across
@@ -26,7 +26,7 @@ Playwright and k6.
 
 These images put each stack in a container that:
 
-- ships **Claude Code and OpenCode**, both pointed at the same AI router;
+- ships **Claude Code, OpenCode and Codex**, all pointed at your AI router;
 - registers with Multica automatically and runs the daemon in the foreground;
 - runs as a **non-root** user (uid 1000) on Debian 13;
 - keeps sessions on a volume, so a restart does not lose context;
@@ -36,7 +36,7 @@ These images put each stack in a container that:
 
 | Image tag | What you get |
 |---|---|
-| `:base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools, Claude Code, OpenCode, Multica CLI |
+| `:base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools, Claude Code, OpenCode, Codex CLI, Multica CLI |
 | `:node` | pnpm, yarn, TypeScript, Playwright, vitest, eslint, prettier |
 | `:python` | uv, Poetry, ruff, mypy, pytest, C headers |
 | `:php` | PHP 8.4, Composer, Laravel, MariaDB + PostgreSQL + Redis inside the container |
@@ -87,10 +87,9 @@ autoscaler, which needs it to call `docker service scale`.
 
 ## Status
 
-Claude Code and OpenCode are supported now. Codex CLI, Qwen Code, Grok Build,
+Claude Code, OpenCode and Codex CLI are supported now. Qwen Code, Grok Build,
 DeepSeek Harness, Pi, Oh-My-Pi, Hermes Agent, OpenClaw and more are on the
-[roadmap](roadmap.md). None of them are installed yet on purpose: each one gets
-an adapter, a pinned version, and a runtime test before it ships.
+[roadmap](roadmap.md).
 
 ## License
 

@@ -31,13 +31,13 @@ fail() { printf '  FAIL  %s\n' "$*" >&2; failures=$((failures + 1)); }
 
 commands_for() {
     case "$1" in
-        base)       printf '%s\n' claude opencode codex multica gh node npm python3 git jq chromium dig ;;
+        base)       printf '%s\n' claude opencode codex multica gh node npm python3 git jq chromium dig uv uvx ;;
         node)       printf '%s\n' pnpm yarn tsc playwright vitest eslint prettier serve ;;
-        python)     printf '%s\n' uv poetry ruff mypy pytest ;;
+        python)     printf '%s\n' poetry ruff mypy pytest ;;
         php)        printf '%s\n' php composer laravel mariadbd psql redis-server ;;
         go)         printf '%s\n' go golangci-lint ;;
         flutter)    printf '%s\n' flutter dart java sdkmanager ;;
-        devops)     printf '%s\n' terraform aws kubectl helm docker yq wrangler uv ;;
+        devops)     printf '%s\n' terraform aws kubectl helm docker yq wrangler ;;
         qa)         printf '%s\n' playwright newman k6 pytest ;;
         design)     printf '%s\n' convert rsvg-convert gs potrace cwebp Xvfb node ;;
         autoscaler) printf '%s\n' multica aws docker python3 ;;

@@ -52,9 +52,9 @@ ghcr.io/proreka/multica-runtime:<variant>
 
 | Tag | Toolchain | Use for |
 |---|---|---|
-| `base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools | general tasks |
+| `base` | Node 26 LTS, Python 3, uv/uvx, git/gh, Chromium, build tools | general tasks |
 | `node` | pnpm, yarn, TypeScript, Playwright, vitest, eslint | web frontends |
-| `python` | uv, Poetry, ruff, mypy, pytest | Python services |
+| `python` | Poetry, ruff, mypy, pytest | Python services |
 | `php` | PHP 8.4, Composer, Laravel, MariaDB + PostgreSQL + Redis | Laravel/Symfony |
 | `go` | Go, golangci-lint | Go services |
 | `flutter` | Flutter, Android SDK, JDK 21, Gradle | mobile (amd64) |

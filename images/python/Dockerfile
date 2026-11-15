@@ -2,9 +2,9 @@
 # =============================================================================
 # Multica Runtime — python
 # =============================================================================
-# Python 3.13 (Debian trixie) with uv, Poetry, pip, ruff, mypy and pytest.
+# Python 3.13 (Debian trixie) with Poetry, pip, ruff, mypy and pytest.
 # System build headers are present so wheels that need to compile work without
-# an extra apt-get at task time.
+# an extra apt-get at task time. uv/uvx come from the base image.
 # =============================================================================
 
 ARG BASE_IMAGE=multica-runtime:base
@@ -12,7 +12,6 @@ FROM ${BASE_IMAGE}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG UV_VERSION
 ARG POETRY_VERSION
 ARG RUFF_VERSION
 ARG MYPY_VERSION
@@ -57,26 +56,6 @@ RUN set -eux; \
         uuid-dev \
         libyaml-dev; \
     rm -rf /var/lib/apt/lists/*
-
-# --- uv (pinned, checksum-verified) -----------------------------------------
-RUN set -eux; \
-    case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
-        amd64) uv_arch="x86_64" ;; \
-        arm64) uv_arch="aarch64" ;; \
-        *) echo "unsupported arch: ${TARGETARCH}" >&2; exit 1 ;; \
-    esac; \
-    asset="uv-${uv_arch}-unknown-linux-gnu.tar.gz"; \
-    url="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${asset}"; \
-    curl -fsSL "$url" -o /tmp/uv.tar.gz; \
-    curl -fsSL "${url}.sha256" -o /tmp/uv.sha256; \
-    echo "$(awk '{print $1}' /tmp/uv.sha256)  /tmp/uv.tar.gz" | sha256sum -c -; \
-    mkdir -p /opt/uv; \
-    tar -xzf /tmp/uv.tar.gz -C /opt/uv --strip-components=1; \
-    ln -sf /opt/uv/uv /usr/local/bin/uv; \
-    ln -sf /opt/uv/uvx /usr/local/bin/uvx; \
-    rm -f /tmp/uv.tar.gz /tmp/uv.sha256; \
-    uv --version; \
-    uvx --version
 
 # --- Python tooling ----------------------------------------------------------
 RUN set -eux; \

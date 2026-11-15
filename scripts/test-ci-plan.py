@@ -13,7 +13,7 @@ spec.loader.exec_module(ci)
 
 class PlanTests(unittest.TestCase):
     ARGS = {
-        "base": {"NODE_VERSION"},
+        "base": {"NODE_VERSION", "UV_VERSION"},
         "python": {"UV_VERSION"},
         "devops": {"UV_VERSION"},
         "node": {"PLAYWRIGHT_VERSION"},
@@ -47,7 +47,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(self.selected(["images/php/Dockerfile"]), {"php"})
 
     def test_shared_versions(self):
-        self.assertEqual(self.selected(keys=["UV_VERSION"]), {"python", "devops"})
+        self.assertEqual(self.selected(keys=["UV_VERSION"]), ci.ALL)
         self.assertEqual(self.selected(keys=["PLAYWRIGHT_VERSION"]), {"node", "qa", "design"})
 
     def test_autoscaler_only(self):

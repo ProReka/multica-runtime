@@ -8,13 +8,13 @@ ghcr.io/proreka/multica-runtime:<variant>
 
 | Tag | Toolchain | Use for | Architectures |
 |---|---|---|---|
-| `base` | Node 26 LTS, Python 3, git/gh, Chromium, build tools | general tasks, scripts, docs | amd64, arm64 |
+| `base` | Node 26 LTS, Python 3, uv/uvx, git/gh, Chromium, build tools | general tasks, scripts, docs | amd64, arm64 |
 | `node` | pnpm, yarn, TypeScript, Playwright, vitest, eslint, prettier | web frontends, Node services | amd64, arm64 |
-| `python` | uv, Poetry, ruff, mypy, pytest | Python services, data work | amd64, arm64 |
+| `python` | Poetry, ruff, mypy, pytest | Python services, data work | amd64, arm64 |
 | `php` | PHP 8.4, Composer, Laravel, MariaDB, PostgreSQL, Redis | Laravel/Symfony | amd64, arm64 |
 | `go` | Go, golangci-lint | Go services, CLIs | amd64, arm64 |
 | `flutter` | Flutter, Android SDK, JDK 21, Gradle | mobile and Flutter web | **amd64 only** |
-| `devops` | Terraform, AWS CLI, kubectl, Helm, Docker CLI, Wrangler, yq, uv | infrastructure work | amd64, arm64 |
+| `devops` | Terraform, AWS CLI, kubectl, Helm, Docker CLI, Wrangler, yq | infrastructure work | amd64, arm64 |
 | `qa` | Playwright + MCP, axe-core, newman, k6, pytest | E2E, API, load, accessibility | amd64, arm64 |
 | `design` | ImageMagick, librsvg, ghostscript, Playwright, Penpot MCP | UI assets, Penpot automation | amd64, arm64 |
 
@@ -25,7 +25,8 @@ the base OS packages.
 
 The default. Enough for a task that mostly reads, writes, reviews, and runs small
 scripts. It includes Chromium so a quick screenshot or a docs build works without
-extra packages.
+extra packages. uv and uvx are included, so MCP servers launched with `uvx`
+work in every variant.
 
 Choose `base` unless a task fails for a missing toolchain.
 
@@ -39,7 +40,7 @@ Includes `@playwright/mcp`, so an agent can use Playwright as an MCP server.
 
 ## `python`
 
-Python 3.13 from Debian, plus uv and Poetry. Build headers (`libpq`, `libffi`,
+Python 3.13 from Debian, plus Poetry (uv comes from `base`). Build headers (`libpq`, `libffi`,
 `libxml2`, `libjpeg`, …) are preinstalled so a `pip install` that needs to compile
 does not fail halfway through a task.
 
@@ -83,7 +84,7 @@ than the default 20 GB ephemeral storage.
 ## `devops`
 
 Terraform, AWS CLI v2, kubectl, Helm, Docker CLI + compose plugin, Cloudflare
-Wrangler, yq, and uv (for MCP servers written in Python).
+Wrangler, and yq.
 
 Credentials are **not** baked in. Pass `AWS_*`, `CLOUDFLARE_API_TOKEN`, or a
 mounted `~/.aws` at runtime. The container has no Docker daemon; the CLI is there

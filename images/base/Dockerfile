@@ -4,7 +4,7 @@
 # =============================================================================
 # Everything an agent needs to pick up a task and work:
 #   Debian 13 + Node.js LTS + git/gh + Chromium + Python + build tools
-#   Claude Code + OpenCode + Codex CLI + Multica CLI
+#   Claude Code + OpenCode + Codex CLI + Multica CLI + uv/uvx
 #
 # The Multica daemon auto-detects every agent CLI on PATH and registers one
 # runtime per CLI. Sessions are parked on /workspaces so they survive restarts.
@@ -56,6 +56,7 @@ ARG MULTICA_CLI_VERSION
 ARG CLAUDE_CODE_VERSION
 ARG OPENCODE_VERSION
 ARG CODEX_VERSION
+ARG UV_VERSION
 ARG TARGETARCH
 ARG IMAGE_VERSION=dev
 
@@ -168,6 +169,27 @@ RUN set -eux; \
     install -m 0755 "/tmp/${base}/bin/gh" /usr/local/bin/gh; \
     rm -rf /tmp/gh.tar.gz /tmp/gh.sha256 "/tmp/${base}"; \
     gh --version | head -n1
+
+# --- uv (pinned, checksum-verified) -----------------------------------------
+# uvx launches Python-based MCP servers, so every variant needs it.
+RUN set -eux; \
+    case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
+        amd64) uv_arch="x86_64" ;; \
+        arm64) uv_arch="aarch64" ;; \
+        *) echo "unsupported arch: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    asset="uv-${uv_arch}-unknown-linux-gnu.tar.gz"; \
+    url="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${asset}"; \
+    curl -fsSL "$url" -o /tmp/uv.tar.gz; \
+    curl -fsSL "${url}.sha256" -o /tmp/uv.sha256; \
+    echo "$(awk '{print $1}' /tmp/uv.sha256)  /tmp/uv.tar.gz" | sha256sum -c -; \
+    mkdir -p /opt/uv; \
+    tar -xzf /tmp/uv.tar.gz -C /opt/uv --strip-components=1; \
+    ln -sf /opt/uv/uv /usr/local/bin/uv; \
+    ln -sf /opt/uv/uvx /usr/local/bin/uvx; \
+    rm -f /tmp/uv.tar.gz /tmp/uv.sha256; \
+    uv --version; \
+    uvx --version
 
 # --- Multica CLI -------------------------------------------------------------
 RUN set -eux; \

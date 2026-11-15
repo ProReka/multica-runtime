@@ -3,7 +3,7 @@
 # Multica Runtime — devops
 # =============================================================================
 # Infrastructure toolkit: Terraform, AWS CLI v2, kubectl, Helm, Docker CLI,
-# Cloudflare Wrangler, yq and uv.
+# Cloudflare Wrangler and yq.
 #
 # Credentials are passed at runtime (AWS_*, CLOUDFLARE_API_TOKEN, ...). Nothing
 # is baked into the image.
@@ -22,7 +22,6 @@ ARG DOCKER_CLI_VERSION
 ARG DOCKER_COMPOSE_VERSION
 ARG YQ_VERSION
 ARG WRANGLER_VERSION
-ARG UV_VERSION
 ARG TARGETARCH
 ARG IMAGE_VERSION=dev
 
@@ -84,21 +83,6 @@ RUN set -eux; \
     # --- yq --- \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${yq_arch}" -o /usr/local/bin/yq; \
     chmod 0755 /usr/local/bin/yq; \
-    # --- uv (for MCP servers) --- \
-    case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
-        amd64) uv_arch="x86_64" ;; \
-        arm64) uv_arch="aarch64" ;; \
-    esac; \
-    uv_asset="uv-${uv_arch}-unknown-linux-gnu.tar.gz"; \
-    uv_url="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${uv_asset}"; \
-    curl -fsSL "$uv_url" -o /tmp/uv.tar.gz; \
-    curl -fsSL "${uv_url}.sha256" -o /tmp/uv.sha256; \
-    echo "$(awk '{print $1}' /tmp/uv.sha256)  /tmp/uv.tar.gz" | sha256sum -c -; \
-    mkdir -p /opt/uv; \
-    tar -xzf /tmp/uv.tar.gz -C /opt/uv --strip-components=1; \
-    ln -sf /opt/uv/uv /usr/local/bin/uv; \
-    ln -sf /opt/uv/uvx /usr/local/bin/uvx; \
-    rm -f /tmp/uv.tar.gz /tmp/uv.sha256; \
     # --- Versions --- \
     terraform version; \
     aws --version; \
@@ -106,8 +90,7 @@ RUN set -eux; \
     helm version --short; \
     docker --version; \
     docker compose version; \
-    yq --version; \
-    uv --version
+    yq --version
 
 # --- Cloudflare Wrangler -----------------------------------------------------
 RUN set -eux; \

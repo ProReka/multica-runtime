@@ -2,6 +2,7 @@
 # No network, credentials, or OpenCode process required.
 set -eu
 cd "$(dirname "$0")/.."
+source images/base/lib/config.sh
 source images/base/lib/opencode.sh
 root="$(mktemp -d)"
 trap 'rm -rf "$root"' EXIT
@@ -20,7 +21,6 @@ log() { :; }
 warn() { :; }
 is_true() { [ "$1" = 1 ]; }
 router_origin() { printf '%s' "$1"; }
-mr_qualify_model() { printf 'router/%s' "$1"; }
 mr_probe_models() { :; }
 mr_configure_opencode
 jq -e '.model == "router/example-main" and .agent.general.model == "router/example-subagent"' \
@@ -40,6 +40,22 @@ jq -e '(.provider.router.models // {}) == {}' \
 MR_MODEL=example-main MR_SUBAGENT=example-subagent MR_LARGE=example-large MR_MEDIUM=example-subagent MR_SMALL=example-small
 mr_probe_models() { printf '["example-main"]'; }
 mr_configure_opencode
-jq -e '.provider.router.models | keys == ["example-main"]' \
+jq -e '.provider.router.models | keys == ["example-main", "example-subagent"]' \
  "$XDG_CONFIG_HOME/opencode/opencode.json" >/dev/null
+# Both raw and qualified overrides resolve to the same provider-local key.
+MR_PROVIDER_ID=9router
+for selection in coding-high 9router/coding-high; do
+ export MULTICA_OPENCODE_MODEL="$selection" MULTICA_OPENCODE_SUBAGENT_MODEL="$selection"
+ for AI_MODELS_PROBE in 0 1; do
+  export AI_MODELS_PROBE
+  mr_configure_opencode
+  jq -e '
+   .model == "9router/coding-high" and
+   .agent.general.model == "9router/coding-high" and
+   (.provider["9router"].models | has("coding-high") and (has("9router/coding-high") | not)) and
+   .provider["9router"].models["coding-high"].attachment == true and
+   .provider["9router"].models["coding-high"].modalities.input == ["text", "image"]
+  ' "$XDG_CONFIG_HOME/opencode/opencode.json" >/dev/null
+ done
+done
 printf 'OpenCode catalogue checks passed.\n'

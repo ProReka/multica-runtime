@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Author identity unknown`.
 - Preserve configured OpenCode main, subagent and tier models when the router
   catalogue probe fails; recovery no longer leaves only the default model usable.
+- OpenCode config now marks every router-catalogued model with
+  `attachment: true` and `modalities.input = ["text", "image"]` so vision works,
+  e.g. model combo di 9router yang sebelumnya dianggap text-only.
 
 ### Added
 

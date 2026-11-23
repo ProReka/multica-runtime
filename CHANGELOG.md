@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Keep explicitly configured OpenCode main and subagent models available when
+  omitted by the router catalogue; normalize the configured provider prefix and
+  enable image input on fallback models too.
+
 - Set a fallback global Git identity at start when `GIT_AUTHOR_NAME` /
   `GIT_AUTHOR_EMAIL` are unset, so agent commits no longer fail with
   `Author identity unknown`.

@@ -138,8 +138,9 @@ mr_configure_opencode() {
             --arg sub "${MULTICA_OPENCODE_SUBAGENT_MODEL:-${MR_SUBAGENT:-}}" \
             --arg large "${MR_LARGE:-}" --arg medium "${MR_MEDIUM:-}" \
             --arg small "${MR_SMALL:-}" \
+            --arg prefix "${MR_PROVIDER_ID}/" \
             '[$main, $sub, $large, $medium, $small]
-             | map(select(length > 0) | {(.): {name: .}}) | add // {}')"
+             | map(ltrimstr($prefix) | select(length > 0) | {(.): {name: .}}) | add // {}')"
         if [ "$probe_enabled" = "0" ]; then
             log "catalogue unknown (AI_MODELS_PROBE=0); using protocol=${protocol}"
         elif [ "$MR_PROTOCOL" = "auto" ]; then
@@ -152,6 +153,15 @@ mr_configure_opencode() {
     # --- Models ----------------------------------------------------------------
     main_model="${MULTICA_OPENCODE_MODEL:-${MR_MODEL:-}}"
     sub_model="${MULTICA_OPENCODE_SUBAGENT_MODEL:-${MR_SUBAGENT:-$main_model}}"
+    # Strip only our provider prefix; router IDs may contain other slashes.
+    main_model="${main_model#"${MR_PROVIDER_ID}/"}"
+    sub_model="${sub_model#"${MR_PROVIDER_ID}/"}"
+    # Explicit selections must remain available even if the catalogue omits them.
+    models_json="$(printf '%s' "$models_json" | jq --arg main "$main_model" --arg sub "$sub_model" '
+        reduce ([$main, $sub][] | select(length > 0)) as $id (. ;
+            .[$id] //= {name: $id})
+        | with_entries(.value += {attachment: true,
+            modalities: {input: ["text", "image"], output: ["text"]}})')"
 
     if [ -n "$main_model" ]; then
         main_ref="$(mr_qualify_model "$main_model")"

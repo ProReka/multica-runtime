@@ -44,7 +44,11 @@ That config:
 - points a custom provider (`AI_PROVIDER_ID`, default `multica`) at your router;
 - picks `@ai-sdk/openai-compatible` or `@ai-sdk/anthropic` based on the protocol
   probe;
-- lists the router's catalogue when `/v1/models` answers;
+- lists the router's catalogue when `/v1/models` answers, retaining explicitly
+  configured main and subagent models even when omitted by the catalogue;
+- accepts `MULTICA_OPENCODE_MODEL` and `MULTICA_OPENCODE_SUBAGENT_MODEL` with
+  or without the configured provider prefix (e.g. `9router/coding-high` or
+  `coding-high`); model keys remain provider-local, with image input enabled;
 - sets the main and subagent model;
 - is written with mode `0600` because it contains the key.
 

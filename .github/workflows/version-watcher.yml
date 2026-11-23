@@ -6,6 +6,11 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+# Only one run at a time so daily runs never collide on the rolling branch.
+concurrency:
+  group: version-watcher
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -16,6 +21,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Check upstream tool releases
         env:
@@ -23,10 +30,15 @@ jobs:
         run: |
           python3 scripts/check-latest-versions.py --update
 
-      - name: Verify and create PR if updated
+      - name: Verify and (re)create a single rolling PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          BRANCH="automation/bump-versions"
+          BASE="main"
+
           if git diff --quiet versions.env; then
             echo "All tools in versions.env are up to date."
             exit 0
@@ -35,19 +47,50 @@ jobs:
           echo "Updates found in versions.env:"
           git diff versions.env
 
-          # Ensure updated versions pass repo linting
+          # Ensure updated versions pass repo linting before we touch any branch.
           make lint
 
-          branch="automation/bump-versions-$(date +%Y%m%d)"
+          # Persist the updated versions.env before resetting the working tree
+          # onto the latest main.
+          cp versions.env /tmp/versions.env.new
+
+          git fetch origin "$BASE"
+          git reset --hard origin/"$BASE"
+          cp /tmp/versions.env.new versions.env
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$branch"
+          git checkout -B "$BRANCH"
           git add versions.env
           git commit -m "chore(deps): bump tool versions in versions.env"
-          git push -u origin "$branch"
 
-          gh pr create \
-            --title "chore(deps): daily tool version updates" \
-            --body "Automated daily version check detected upstream tool updates in \`versions.env\`." \
-            --head "$branch" \
-            --base main
+          # force-with-lease keeps exactly one commit on the rolling branch, so
+          # there is never more than one active PR. Only this bot pushes here.
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$BRANCH"
+          fi
+          git push --force-with-lease origin "$BRANCH"
+
+          # Reuse an open PR for this branch if one exists; otherwise create it.
+          # Pushing to the same head branch automatically updates an open PR.
+          if gh pr list --head "$BRANCH" --base "$BASE" --state open \
+              --json number -q '.[] | .number' | grep -q .; then
+            echo "Rolling PR already open; updated in place."
+          else
+            CHANGES="$(git diff origin/"$BASE".."$BRANCH" -- versions.env | sed 's/^/  /')"
+            {
+              echo 'Automated daily version check detected upstream tool updates in `versions.env`.'
+              echo
+              echo '\`\`\`diff'
+              printf '%s\n' "$CHANGES"
+              echo '\`\`\`'
+              echo
+              echo 'This is a rolling PR: each daily run updates this same pull request instead of opening a new one. Merge when ready.'
+            } > /tmp/pr-body.md
+            gh pr create \
+              --title "chore(deps): daily tool version updates" \
+              --body-file /tmp/pr-body.md \
+              --head "$BRANCH" \
+              --base "$BASE" \
+              --label automation,chore,dependencies
+          fi

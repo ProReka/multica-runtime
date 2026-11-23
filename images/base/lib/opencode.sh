@@ -125,8 +125,12 @@ mr_configure_opencode() {
 
     # --- Model catalogue -------------------------------------------------------
     if [ "$count" -gt 0 ]; then
-        models_json="$(printf '%s' "$catalogue" | jq 'map({(.): {name: .}}) | add')"
-        log "Router catalogue OK at ${origin}/v1/models (${count} models)"
+        # Router katalog hanya mengirim id model. OpenCode butuh attachment +
+        # modalities untuk mengetahui apakah model menerima gambar (vision);
+        # tanpa itu semua model dianggap text-only, misalnya model combo di
+        # 9router dianggap tidak punya kemampuan vision.
+        models_json="$(printf '%s' "$catalogue" | jq 'map({(.): {name: ., attachment: true, modalities: {input: ["text", "image"], output: ["text"]}}}) | add')"
+        log "Router catalogue OK at ${origin}/v1/models (${count} models, vision enabled)"
     else
         # A router outage must not hide configured models after it recovers.
         models_json="$(jq -n \

@@ -26,7 +26,7 @@ concurrency:
 jobs:
   build:
     name: Build site
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     steps:
       - uses: actions/checkout@v7
 
@@ -52,7 +52,7 @@ jobs:
     name: Deploy to GitHub Pages
     if: github.ref == 'refs/heads/main'
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     permissions:
       pages: write
       id-token: write

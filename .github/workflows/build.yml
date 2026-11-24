@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   plan:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     outputs:
       pr_variants: ${{ steps.plan.outputs.pr_variants }}
@@ -80,7 +80,7 @@ jobs:
     name: Test affected images (amd64)
     needs: plan
     if: github.event_name == 'pull_request' && needs.plan.outputs.publish == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     steps:
       - uses: actions/checkout@v7
       - name: Build and smoke-test affected images
@@ -110,7 +110,7 @@ jobs:
     name: Publish base
     needs: plan
     if: github.event_name != 'pull_request' && needs.plan.outputs.base == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     permissions:
       packages: write
     steps:
@@ -135,7 +135,7 @@ jobs:
       needs.plan.result == 'success' &&
       (needs.base.result == 'success' || needs.base.result == 'skipped') &&
       needs.plan.outputs.matrix != '{"include":[]}'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     permissions:
       packages: write
     strategy:
@@ -182,7 +182,7 @@ jobs:
       needs.plan.result == 'success' && needs.plan.outputs.publish == 'true' &&
       (needs.base.result == 'success' || needs.base.result == 'skipped') &&
       (needs.variants.result == 'success' || needs.variants.result == 'skipped')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, ec2-spot]
     permissions:
       contents: write
       packages: write
